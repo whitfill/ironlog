@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Iron Log">
+<meta name="theme-color" content="#0a0a0a">
+<title>Iron Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #e8c840;
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #1e1e1e;
+    --text: #f0ede8;
+    --muted: #555;
+    --dim: #333;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; overscroll-behavior: none; }
+
+  /* Layout */
+  #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  #header { background: #0d0d0d; border-bottom: 1px solid var(--border); padding: 16px 20px 12px; flex-shrink: 0; }
+  #header-inner { display: flex; justify-content: space-between; align-items: flex-end; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 4px; color: var(--gold); line-height: 1; }
+  .logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 3px; margin-top: 2px; }
+  .header-meta { font-size: 10px; color: var(--muted); text-align: right; line-height: 1.7; }
+  .header-meta span { color: #888; }
+
+  /* Tabs */
+  #tabs { background: #0d0d0d; border-bottom: 1px solid var(--border); display: flex; flex-shrink: 0; }
+  .tab { flex: 1; padding: 12px; text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 2px; color: var(--muted); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* Scrollable content */
+  #content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .pane { display: none; padding: 20px 20px 48px; }
+  .pane.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Form elements */
+  .label { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 7px; }
+  .field { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 15px; appearance: none; -webkit-appearance: none; border-radius: 0; transition: border 0.2s; }
+  .field:focus { outline: none; border-color: var(--gold); }
+  select.field { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  select.field option { background: #1a1a1a; }
+
+  .row2 { display: flex; gap: 10px; }
+  .row2 > div { flex: 1; }
+
+  /* Buttons */
+  .btn { width: 100%; padding: 14px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; border: none; cursor: pointer; transition: all 0.15s; border-radius: 0; }
+  .btn-gold { background: var(--gold); color: #0a0a0a; }
+  .btn-gold:active { background: #f5d94e; transform: scale(0.98); }
+  .btn-gold:disabled { background: var(--dim); color: #666; transform: none; }
+  .btn-ghost { background: transparent; border: 1px solid var(--dim); color: #888; font-size: 16px; letter-spacing: 2px; }
+  .btn-ghost:active { border-color: var(--gold); color: var(--gold); }
+  .btn-ghost:disabled { opacity: 0.4; }
+
+  /* Sets box */
+  #sets-box { background: var(--surface); border: 1px solid var(--border); padding: 18px; margin-bottom: 16px; animation: fadeIn 0.2s ease; }
+  .set-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #1a1a1a; }
+  .set-item:last-child { border-bottom: none; }
+  .set-num { background: var(--gold); color: #0a0a0a; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .set-label { flex: 1; font-size: 14px; }
+  .set-del { background: none; border: none; color: var(--dim); font-size: 18px; padding: 4px 8px; cursor: pointer; line-height: 1; }
+  .set-del:active { color: #ff4444; }
+  .vol-row { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .vol-row span { color: var(--gold); }
+
+  /* Last used hint */
+  .last-hint { font-size: 11px; color: #e8c84088; margin-top: 5px; letter-spacing: 1px; }
+
+  /* Saved toast */
+  #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--gold); color: #0a0a0a; padding: 10px 28px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; transition: transform 0.3s ease; z-index: 99; pointer-events: none; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* History */
+  .day-header { font-size: 10px; color: var(--muted); letter-spacing: 3px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; }
+  .history-card { background: var(--surface); border: 1px solid var(--border); padding: 14px; margin-bottom: 10px; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .card-machine { font-family: 'Bebas Neue', sans-serif; font-size: 21px; letter-spacing: 2px; }
+  .card-actions { display: flex; gap: 8px; align-items: center; }
+  .badge { background: #1a1a1a; border: 1px solid #2a2a2a; padding: 3px 8px; font-size: 10px; color: #888; letter-spacing: 1px; }
+  .card-del { background: none; border: none; color: var(--dim); font-size: 18px; cursor: pointer; padding: 2px 6px; }
+  .card-del:active { color: #ff4444; }
+  .sets-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: #1a1a1a; border: 1px solid #252525; padding: 5px 10px; font-size: 12px; }
+  .chip-w { color: var(--gold); }
+  .chip-x { color: var(--muted); margin: 0 2px; }
+  .card-vol { margin-top: 10px; font-size: 10px; color: #444; }
+  .day-group { margin-bottom: 28px; }
+
+  .empty { text-align: center; padding: 70px 20px; color: #444; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 4px; margin-bottom: 6px; }
+  .empty-sub { font-size: 12px; }
+
+  /* Section spacing */
+  .section { margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="header-inner">
+      <div>
+        <div class="logo">IRON LOG</div>
+        <div class="logo-sub">GYM TRACKER</div>
+      </div>
+      <div class="header-meta">
+        <span id="today-date"></span><br>
+        <span id="session-count">0 sessions</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabs">
+    <div class="tab active" onclick="switchTab('log')">LOG WORKOUT</div>
+    <div class="tab" onclick="switchTab('history')">HISTORY</div>
+  </div>
+
+  <div id="content">
+    <!-- LOG PANE -->
+    <div id="pane-log" class="pane active">
+      <div class="section">
+        <div class="label">MACHINE</div>
+        <select class="field" id="machine-select" onchange="onMachineChange()">
+          <option value="">— Select a machine —</option>
+          <option>Chest Press</option>
+          <option>Lat Pulldown</option>
+          <option>Shoulder Press</option>
+          <option>Seated Row</option>
+          <option>Leg Press</option>
+          <option>Leg Extension</option>
+          <option>Leg Curl</option>
+          <option>Calf Raise</option>
+          <option>Hip Abductor</option>
+          <option>Hip Adductor</option>
+          <option>Tricep Pushdown</option>
+          <option>Bicep Curl Machine</option>
+          <option>Ab Crunch Machine</option>
+          <option>Back Extension</option>
+          <option>Pec Deck / Chest Fly</option>
+          <option>Cable Crossover</option>
+          <option>Assisted Pull-Up / Dip</option>
+          <option value="__custom__">+ Other / Custom</option>
+        </select>
+        <div id="custom-wrap" style="display:none; margin-top:8px;">
+          <input class="field" id="custom-name" placeholder="Enter machine name..." oninput="onMachineChange()">
+        </div>
+        <div id="last-hint" class="last-hint" style="display:none;"></div>
+      </div>
+
+      <div id="add-set-box" style="display:none;" class="section">
+        <div id="sets-box">
+          <div class="label" style="margin-bottom:14px;">ADD SET</div>
+          <div class="row2" style="margin-bottom:14px;">
+            <div>
+              <div class="label">WEIGHT (lbs)</div>
+              <input class="field" id="inp-weight" type="number" inputmode="decimal" min="0" placeholder="e.g. 50">
+            </div>
+            <div>
+              <div class="label">REPS</div>
+              <input class="field" id="inp-reps" type="number" inputmode="numeric" min="0" placeholder="e.g. 12">
+            </div>
+          </div>
+          <button class="btn btn-ghost" onclick="addSet()">+ ADD SET</button>
+          <div id="sets-list"></div>
+        </div>
+        <button class="btn btn-gold" id="save-btn" onclick="saveExercise()" disabled>SAVE EXERCISE</button>
+      </div>
+    </div>
+
+    <!-- HISTORY PANE -->
+    <div id="pane-history" class="pane">
+      <div id="history-content"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">✓ SAVED!</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────
+  let log = JSON.parse(localStorage.getItem('ironlog_v2') || '[]');
+  let currentSets = [];
+
+  // ── Init ───────────────────────────────────────────────────────────
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  updateSessionCount();
+
+  function save() {
+    localStorage.setItem('ironlog_v2', JSON.stringify(log));
+    updateSessionCount();
+  }
+
+  function updateSessionCount() {
+    document.getElementById('session-count').textContent = log.length + ' session' + (log.length !== 1 ? 's' : '') + ' logged';
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (tab === 'log')));
+    document.getElementById('pane-log').classList.toggle('active', tab === 'log');
+    document.getElementById('pane-history').classList.toggle('active', tab === 'history');
+    if (tab === 'history') renderHistory();
+  }
+
+  // ── Machine selection ──────────────────────────────────────────────
+  function getMachineName() {
+    const sel = document.getElementById('machine-select').value;
+    if (sel === '__custom__') return document.getElementById('custom-name').value.trim();
+    return sel;
+  }
+
+  function getLastWeight(machineName) {
+    for (let i = 0; i < log.length; i++) {
+      if (log[i].machine === machineName && log[i].sets.length > 0) {
+        return log[i].sets[log[i].sets.length - 1].weight;
+      }
+    }
+    return null;
+  }
+
+  function onMachineChange() {
+    const sel = document.getElementById('machine-select').value;
+    const customWrap = document.getElementById('custom-wrap');
+    customWrap.style.display = sel === '__custom__' ? 'block' : 'none';
+
+    const name = getMachineName();
+    const addBox = document.getElementById('add-set-box');
+    const hintEl = document.getElementById('last-hint');
+
+    if (name) {
+      addBox.style.display = 'block';
+      currentSets = [];
+      renderSets();
+
+      // preload last weight
+      const lastW = getLastWeight(name);
+      if (lastW !== null) {
+        document.getElementById('inp-weight').value = lastW;
+        hintEl.textContent = '↑ Last used: ' + lastW + ' lbs';
+        hintEl.style.display = 'block';
+      } else {
+        document.getElementById('inp-weight').value = '';
+        hintEl.style.display = 'none';
+      }
+      document.getElementById('inp-reps').value = '';
+    } else {
+      addBox.style.display = 'none';
+      hintEl.style.display = 'none';
+    }
+  }
+
+  // ── Sets ───────────────────────────────────────────────────────────
+  function addSet() {
+    const w = parseFloat(document.getElementById('inp-weight').value);
+    const r = parseInt(document.getElementById('inp-reps').value);
+    if (!w || !r) { alert('Enter weight and reps first.'); return; }
+    currentSets.push({ weight: w, reps: r });
+    document.getElementById('inp-reps').value = '';
+    document.getElementById('inp-weight').focus();
+    renderSets();
+  }
+
+  function removeSet(i) {
+    currentSets.splice(i, 1);
+    renderSets();
+  }
+
+  function renderSets() {
+    const list = document.getElementById('sets-list');
+    const saveBtn = document.getElementById('save-btn');
+    if (currentSets.length === 0) { list.innerHTML = ''; saveBtn.disabled = true; return; }
+
+    const vol = currentSets.reduce((a, s) => a + s.weight * s.reps, 0);
+    list.innerHTML = '<div style="margin-top:16px;">'
+      + currentSets.map((s, i) =>
+        `<div class="set-item">
+          <div class="set-num">${i+1}</div>
+          <div class="set-label">${s.weight} lbs × ${s.reps} reps</div>
+          <button class="set-del" onclick="removeSet(${i})">×</button>
+        </div>`
+      ).join('')
+      + `<div class="vol-row">TOTAL VOLUME <span>${vol.toLocaleString()} lbs</span></div>`
+      + '</div>';
+    saveBtn.disabled = false;
+  }
+
+  // ── Save exercise ──────────────────────────────────────────────────
+  function saveExercise() {
+    const name = getMachineName();
+    if (!name || currentSets.length === 0) return;
+    log.unshift({
+      id: Date.now(),
+      date: new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' }),
+      machine: name,
+      sets: [...currentSets]
+    });
+    save();
+    // reset
+    currentSets = [];
+    document.getElementById('machine-select').value = '';
+    document.getElementById('custom-wrap').style.display = 'none';
+    document.getElementById('add-set-box').style.display = 'none';
+    document.getElementById('last-hint').style.display = 'none';
+    renderSets();
+    showToast();
+  }
+
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── History ────────────────────────────────────────────────────────
+  function deleteEntry(id) {
+    log = log.filter(e => e.id !== id);
+    save();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const el = document.getElementById('history-content');
+    if (log.length === 0) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">🏋️</div><div class="empty-title">NO WORKOUTS YET</div><div class="empty-sub">Log your first exercise to see history here</div></div>`;
+      return;
+    }
+    const grouped = {};
+    log.forEach(e => { if (!grouped[e.date]) grouped[e.date] = []; grouped[e.date].push(e); });
+    el.innerHTML = Object.entries(grouped).map(([date, entries]) =>
+      `<div class="day-group">
+        <div class="day-header">${date}</div>
+        ${entries.map(entry => {
+          const vol = entry.sets.reduce((a, s) => a + s.weight * s.reps, 0);
+          return `<div class="history-card">
+            <div class="card-top">
+              <div class="card-machine">${entry.machine}</div>
+              <div class="card-actions">
+                <div class="badge">${entry.sets.length} SETS</div>
+                <button class="card-del" onclick="deleteEntry(${entry.id})">🗑</button>
+              </div>
+            </div>
+            <div class="sets-chips">
+              ${entry.sets.map(s => `<div class="chip"><span class="chip-w">${s.weight}lb</span><span class="chip-x">×</span>${s.reps}r</div>`).join('')}
+            </div>
+            <div class="card-vol">Volume: ${vol.toLocaleString()} lbs</div>
+          </div>`;
+        }).join('')}
+      </div>`
+    ).join('');
+  }
+
+  // Enter key support
+  document.getElementById('inp-reps').addEventListener('keydown', e => { if (e.key === 'Enter') addSet(); });
+</script>
+</body>
+</html>
