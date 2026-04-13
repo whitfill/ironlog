@@ -312,7 +312,7 @@ let strLog=LS.get('il4_str')||[];
 let inlineSets={};
 let inlineOpen=null;
 let selIntervals=5;
-let selCardio=true;
+let didCardio=true;
 
 document.getElementById('hdate').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 
@@ -602,15 +602,15 @@ function selInt(n){
   });
 }
 function selCardio(val){
-  selCardio=val;
+  didCardio=val;
   document.getElementById('cardio-yes').classList.toggle('selected',val);
   document.getElementById('cardio-no').classList.toggle('selected',!val);
   document.getElementById('cardio-yes').textContent=val?'YES ✓':'YES';
   document.getElementById('cardio-no').textContent=!val?'NO ✓':'NO';
 }
 function logWalk(){
-  const mins=(selIntervals*6)+(selCardio?12:0);
-  walkLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),intervals:selIntervals,cardio:selCardio,minutes:mins});
+  const mins=(selIntervals*6)+(didCardio?12:0);
+  walkLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),intervals:selIntervals,cardio:didCardio,minutes:mins});
   LS.set('il4_walk',walkLog);
   renderWalkHist();updH();toast('WALK LOGGED!');
 }
