@@ -582,7 +582,8 @@ function renderStrList(){
   el.innerHTML=STRS.map((s,i)=>{
     let h='';if(s.a!==la){h=`<div class="slabel">${s.a}</div>`;la=s.a;}
     const done=strDoneSet.has(i),active=curStr===i;
-    return `${h}<div class="stcard${active?' active':''}${done&&!active?' sdone':''}" onclick="selStr(${i})"><div class="stop"><div class="stn">${done?'✓ ':''}${s.n}</div><span class="badge${active?' bg':''}">${s.h}</span></div><div class="stdesc">${s.d}</div></div>`;
+    const ytUrl=`https://www.youtube.com/results?search_query=${encodeURIComponent('how to do '+s.n+' stretch for seniors over 60')}`;
+    return `${h}<div class="stcard${active?' active':''}${done&&!active?' sdone':''}" onclick="selStr(${i})"><div class="stop"><div class="stn">${done?'✓ ':''}${s.n}</div><span class="badge${active?' bg':''}">${s.h}</span></div><div class="stdesc">${s.d}</div><a href="${ytUrl}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block;margin-top:8px;font-size:11px;color:var(--green);text-decoration:none;letter-spacing:.5px;">▶ Watch on YouTube →</a></div>`;
   }).join('');
   document.getElementById('sdcount').textContent=strDoneSet.size;
 }
