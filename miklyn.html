@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="First Rep">
+<meta name="theme-color" content="#ffffff">
+<title>Miklyn — First Rep</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rose:#e8556d;--rose-light:#fdf0f2;--rose-mid:#f9d0d7;
+  --sage:#3a8c6e;--sage-light:#eef7f3;--sage-mid:#b8dfd1;
+  --sky:#3a7fc1;--sky-light:#eef4fb;
+  --amber:#d97706;--amber-light:#fef3e2;
+  --bg:#f8f7f5;--white:#ffffff;--border:#e8e4df;
+  --text:#1a1a1a;--muted:#888;--soft:#bbb;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overscroll-behavior:none;}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+
+/* Header */
+#hdr{background:var(--white);border-bottom:1px solid var(--border);padding:14px 18px 12px;flex-shrink:0;}
+.hrow{display:flex;justify-content:space-between;align-items:center;}
+.logo{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.5px;}
+.logo span{color:var(--rose);}
+.streak-pill{display:flex;align-items:center;gap:5px;background:var(--amber-light);border:1px solid #fcd34d;border-radius:99px;padding:5px 12px;font-size:13px;font-weight:600;color:var(--amber);}
+
+/* Nav */
+#nav{background:var(--white);border-bottom:1px solid var(--border);display:flex;flex-shrink:0;}
+.nb{flex:1;padding:10px 4px 8px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.ni{font-size:18px;line-height:1;margin-bottom:2px;}
+.nl{font-size:9px;letter-spacing:1px;color:var(--muted);font-weight:600;text-transform:uppercase;}
+.nb.active .nl{color:var(--rose);}
+.nb.active{border-bottom-color:var(--rose);}
+
+/* Content */
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.pane{display:none;padding:16px 16px 60px;}
+.pane.active{display:block;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+.card-title{font-size:13px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;color:var(--muted);text-transform:uppercase;}
+
+/* Stats row */
+.stats{display:flex;gap:8px;margin-bottom:14px;}
+.stat{flex:1;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;}
+.sv{font-size:26px;font-weight:700;line-height:1;color:var(--rose);}
+.sl{font-size:10px;color:var(--muted);margin-top:3px;font-weight:500;}
+
+/* Section label */
+.slabel{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px;}
+
+/* Workout plan cards */
+.day-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.day-tab{padding:7px 14px;border:1.5px solid var(--border);border-radius:99px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;background:var(--white);transition:all .15s;}
+.day-tab.active{border-color:var(--rose);color:var(--rose);background:var(--rose-light);}
+
+.ex-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;margin-bottom:8px;overflow:hidden;transition:border-color .15s;}
+.ex-card.logged{border-color:var(--sage);background:var(--sage-light);}
+.ex-card.open{border-color:var(--rose);}
+.ex-head{padding:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.ex-name{font-size:15px;font-weight:600;margin-bottom:3px;}
+.ex-sub{font-size:12px;color:var(--muted);}
+.ex-right{display:flex;align-items:center;gap:8px;}
+.ex-check{font-size:18px;}
+.ex-arrow{font-size:11px;color:var(--soft);transition:transform .2s;}
+.ex-card.open .ex-arrow{transform:rotate(180deg);}
+
+.ex-body{display:none;border-top:1px solid var(--border);padding:14px;}
+.ex-card.open .ex-body{display:block;}
+
+.why-box{background:var(--sky-light);border-radius:10px;padding:12px 13px;margin-bottom:12px;}
+.why-label{font-size:10px;font-weight:700;color:var(--sky);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.why-text{font-size:13px;color:#2d5a8e;line-height:1.6;}
+
+/* Feeling log */
+.feel-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.feel-row{display:flex;gap:6px;margin-bottom:12px;}
+.feel-btn{flex:1;padding:10px 4px;border:1.5px solid var(--border);border-radius:10px;background:var(--white);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;text-align:center;transition:all .15s;}
+.feel-btn.sel-easy{border-color:var(--sage);background:var(--sage-light);color:var(--sage);}
+.feel-btn.sel-good{border-color:var(--rose);background:var(--rose-light);color:var(--rose);}
+.feel-btn.sel-hard{border-color:var(--amber);background:var(--amber-light);color:var(--amber);}
+
+/* Weight log (optional) */
+.optional-label{font-size:10px;color:var(--soft);text-align:center;margin:4px 0 10px;letter-spacing:.5px;}
+.weight-row{display:flex;gap:8px;margin-bottom:8px;}
+.weight-row input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.weight-row input:focus{outline:none;border-color:var(--rose);}
+
+.log-btn{width:100%;padding:13px;background:var(--rose);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:all .15s;}
+.log-btn:active{transform:scale(.98);}
+.log-btn:disabled{background:var(--border);color:var(--soft);}
+.log-btn.done{background:var(--sage);}
+
+.logged-summary{text-align:center;padding:8px;font-size:13px;color:var(--sage);font-weight:600;}
+
+/* Rest day card */
+.rest-card{background:var(--sage-light);border:1.5px solid var(--sage-mid);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px;}
+.rest-icon{font-size:36px;margin-bottom:8px;}
+.rest-title{font-size:16px;font-weight:700;color:var(--sage);margin-bottom:6px;}
+.rest-text{font-size:13px;color:#2d7a5a;line-height:1.6;}
+
+/* Stretch pane */
+.stretch-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 15px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.stretch-card.active{border-color:var(--rose);background:var(--rose-light);}
+.stretch-card.done{opacity:.4;}
+.stretch-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.stretch-name{font-size:14px;font-weight:600;flex:1;padding-right:8px;}
+.stretch-time{font-size:11px;font-weight:600;color:var(--rose);background:var(--rose-light);border:1px solid var(--rose-mid);border-radius:99px;padding:3px 9px;white-space:nowrap;}
+.stretch-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+
+.timer-box{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:20px;text-align:center;margin-bottom:14px;}
+.timer-state{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.timer-name{font-size:15px;font-weight:600;margin-bottom:10px;min-height:22px;}
+.timer-num{font-size:58px;font-weight:700;line-height:1;margin-bottom:12px;font-family:'DM Mono',monospace;color:var(--text);}
+.timer-num.running{color:var(--rose);}
+.timer-num.done{color:var(--sage);}
+.pbar{background:var(--border);height:4px;border-radius:2px;overflow:hidden;margin-bottom:14px;}
+.pfill{height:100%;background:var(--rose);border-radius:2px;transition:width .5s linear;}
+.timer-btns{display:flex;gap:8px;justify-content:center;}
+.tbtn{padding:9px 18px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;}
+.tbtn:active{border-color:var(--rose);color:var(--rose);}
+.tbtn-go{background:var(--rose);border-color:var(--rose);color:#fff;}
+.tbtn-go:active{background:#d0445f;}
+
+/* History */
+.hist-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;}
+.hist-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.hist-ex{font-size:15px;font-weight:700;}
+.hist-date{font-size:11px;color:var(--muted);}
+.hist-feel{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;margin-bottom:6px;}
+.feel-easy{background:var(--sage-light);color:var(--sage);}
+.feel-good{background:var(--rose-light);color:var(--rose);}
+.feel-hard{background:var(--amber-light);color:var(--amber);}
+.hist-weight{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+/* Progress */
+.progress-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
+.prog-ex{font-size:14px;font-weight:700;margin-bottom:6px;}
+.prog-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px;}
+.prog-bar-wrap{background:var(--bg);border-radius:4px;height:6px;margin-top:4px;overflow:hidden;}
+.prog-bar-fill{height:100%;background:var(--rose);border-radius:4px;transition:width .5s ease;}
+.pr-badge{font-size:10px;font-weight:700;color:var(--rose);background:var(--rose-light);border:1px solid var(--rose-mid);border-radius:99px;padding:2px 7px;margin-left:6px;}
+
+/* Intro/tip box */
+.tip-box{background:var(--amber-light);border:1.5px solid #fcd34d;border-radius:12px;padding:14px 15px;margin-bottom:14px;}
+.tip-title{font-size:11px;font-weight:700;color:var(--amber);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.tip-text{font-size:13px;color:#92400e;line-height:1.65;}
+
+/* Empty */
+.empty{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+.empty-text{font-size:14px;font-weight:600;margin-bottom:4px;}
+.empty-sub{font-size:12px;}
+
+/* Toast */
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--rose);color:#fff;padding:10px 24px;border-radius:99px;font-size:14px;font-weight:700;transition:transform .3s;z-index:99;pointer-events:none;letter-spacing:.5px;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="hdr">
+    <div class="hrow">
+      <div class="logo">Miklyn's <span>First Rep</span></div>
+      <div class="streak-pill"><span>🔥</span><span id="streak-num">0</span> day streak</div>
+    </div>
+  </div>
+
+  <div id="nav">
+    <div class="nb active" onclick="showPane('workout',this)"><div class="ni">💪</div><div class="nl">Workout</div></div>
+    <div class="nb" onclick="showPane('stretch',this)"><div class="ni">🧘</div><div class="nl">Stretch</div></div>
+    <div class="nb" onclick="showPane('progress',this)"><div class="ni">📈</div><div class="nl">Progress</div></div>
+    <div class="nb" onclick="showPane('learn',this)"><div class="ni">📖</div><div class="nl">Learn</div></div>
+  </div>
+
+  <div id="content">
+
+    <!-- WORKOUT -->
+    <div id="pane-workout" class="pane active">
+      <div class="stats">
+        <div class="stat"><div class="sv" id="s-total">0</div><div class="sl">Total Sessions</div></div>
+        <div class="stat"><div class="sv" id="s-week">0</div><div class="sl">This Week</div></div>
+        <div class="stat"><div class="sv" id="s-streak">0</div><div class="sl">🔥 Streak</div></div>
+      </div>
+      <div class="day-tabs" id="day-tabs"></div>
+      <div id="workout-body"></div>
+    </div>
+
+    <!-- STRETCH -->
+    <div id="pane-stretch" class="pane">
+      <div class="timer-box">
+        <div class="timer-state" id="t-state">TAP A STRETCH TO START</div>
+        <div class="timer-name" id="t-name">—</div>
+        <div class="timer-num" id="t-num">—</div>
+        <div class="pbar"><div class="pfill" id="t-fill" style="width:0%"></div></div>
+        <div class="timer-btns">
+          <button class="tbtn tbtn-go" id="t-go" onclick="tStart()" style="display:none">START</button>
+          <button class="tbtn" id="t-pause" onclick="tPause()" style="display:none">PAUSE</button>
+          <button class="tbtn" id="t-done" onclick="tDone()" style="display:none">DONE</button>
+        </div>
+      </div>
+      <div class="stats" style="margin-bottom:14px;">
+        <div class="stat"><div class="sv" id="str-done">0</div><div class="sl">Done</div></div>
+        <div class="stat"><div class="sv">7</div><div class="sl">Total</div></div>
+        <div class="stat"><div class="sv">15</div><div class="sl">Min</div></div>
+      </div>
+      <div id="stretch-list"></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="pane-progress" class="pane">
+      <div id="progress-body"></div>
+    </div>
+
+    <!-- LEARN -->
+    <div id="pane-learn" class="pane">
+      <div class="card">
+        <div class="card-title">The only rule that matters</div>
+        <p style="font-size:14px;line-height:1.7;color:#333;">Show up 3 times a week for 6 weeks. That's it. You will see and feel a real difference. Don't worry about doing it perfectly — <strong>consistency beats perfection every time.</strong></p>
+      </div>
+
+      <div class="slabel">The golden rule for beginners</div>
+      <div class="card" style="border-left:4px solid var(--rose);">
+        <div style="font-size:15px;font-weight:700;margin-bottom:8px;">When 3×12 feels easy → add 5 lbs</div>
+        <p style="font-size:13px;line-height:1.65;color:#555;">Every time you finish all 3 sets of 12 reps and it feels genuinely easy, add 5 lbs next session. That's how you get stronger. It's that simple.</p>
+      </div>
+
+      <div class="slabel">Gym basics</div>
+      ${[
+        ['What are reps and sets?','A rep is one complete movement (push out, come back = 1 rep). A set is a group of reps. "3 sets of 12" means do 12 reps, rest, do 12 more, rest, do 12 more.'],
+        ['How long should I rest between sets?','60–90 seconds as a beginner. Use your phone timer. It feels awkward to just stand there but it matters — your muscles need it.'],
+        ['What weight should I start with?','Light enough that the last 2–3 reps of each set are challenging but your form stays clean. No ego — start lighter than you think you need to.'],
+        ['Should I be sore?','Some soreness 24–48 hours after is normal, especially week 1–2. Sharp pain during exercise = stop. Muscle soreness the next day = you worked.'],
+        ['How do I breathe?','Exhale on the effort (the push or pull), inhale on the return. Don't hold your breath.'],
+      ].map(([q,a])=>`
+      <div class="card" style="margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${q}</div>
+        <p style="font-size:13px;line-height:1.65;color:#555;">${a}</p>
+      </div>`).join('')}
+
+      <div class="slabel">What to eat around your workout</div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div><div style="font-size:12px;font-weight:700;color:var(--rose);margin-bottom:3px;">1–2 HOURS BEFORE</div><div style="font-size:13px;color:#555;">Small meal with protein + carbs. Greek yogurt with fruit, banana with peanut butter, oatmeal with eggs.</div></div>
+          <div style="border-top:1px solid var(--border);padding-top:10px;"><div style="font-size:12px;font-weight:700;color:var(--sage);margin-bottom:3px;">WITHIN 30–60 MIN AFTER</div><div style="font-size:13px;color:#555;">Protein to help your muscles recover. Protein shake, chicken, eggs, cottage cheese. This window matters.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast">✓ Logged!</div>
+
+<script>
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+
+let gymLog=LS.get('miklyn_gym')||[];  // {id,ts,date,exercise,feeling,weight,reps}
+let strLog=LS.get('miklyn_str')||[];  // {id,ts,date}
+let sessionLog=LS.get('miklyn_sess')||[];  // {id,ts,date,day}
+let pendingFeel={};  // key=exercise -> 'easy'|'good'|'hard'
+let pendingWeight={};  // key=exercise -> {weight,reps}
+let loggedToday=new Set();  // exercise keys logged this session
+
+const PLAN=[
+  {title:'Day A',sub:'Full body · Mon / Wed / Fri',rest:false,exs:[
+    {n:'Leg Press',s:'3 × 12',why:'Builds the big muscles in your thighs and glutes — the foundation of lower body strength. Easier on your joints than a squat when starting out.',muscle:'Legs / Glutes'},
+    {n:'Chest Press',s:'3 × 12',why:'Strengthens your chest, shoulders, and triceps all at once. Great for posture and upper body shape.',muscle:'Chest / Shoulders'},
+    {n:'Seated Row',s:'3 × 12',why:'Builds your back and improves posture. Most people who sit at desks are weak here — this makes a noticeable difference fast.',muscle:'Back / Biceps'},
+    {n:'Shoulder Press',s:'3 × 10',why:'Shapes your shoulders and strengthens the muscles that stabilize your whole upper body.',muscle:'Shoulders'},
+    {n:'Lat Pulldown',s:'3 × 12',why:'The "V shape" exercise. Works your lats (big back muscles) and builds the look of a strong, tapered back.',muscle:'Back / Lats'},
+    {n:'Ab Crunch Machine',s:'2 × 15',why:'Light weight, slow movement. Core strength helps with everything — posture, balance, and protecting your back.',muscle:'Core'},
+  ]},
+  {title:'Day B',sub:'Full body · Tue / Thu / Sat',rest:false,exs:[
+    {n:'Leg Extension',s:'3 × 12',why:'Isolates your quads (front of thigh). Great for knee stability and finishing out the leg work from Day A.',muscle:'Quads'},
+    {n:'Seated Leg Curl',s:'3 × 12',why:'Works your hamstrings (back of thigh). Balancing quads and hamstrings prevents injury and creates balanced leg shape.',muscle:'Hamstrings'},
+    {n:'Pec Fly / Chest Fly',s:'3 × 12',why:'Opens up your chest and works the inner part of the pec that press doesn\'t reach. Also great for posture.',muscle:'Chest'},
+    {n:'Bicep Curl Machine',s:'2 × 12',why:'Classic arm exercise. Keep elbows still and use a full range of motion — squeeze at the top.',muscle:'Biceps'},
+    {n:'Tricep Pushdown',s:'2 × 12',why:'Works the back of your arm. Triceps are actually 2/3 of your upper arm, so this matters more than biceps for arm shape.',muscle:'Triceps'},
+    {n:'Back Extension',s:'2 × 15',why:'Strengthens your lower back, which protects your spine and helps with everything from lifting to sitting to running.',muscle:'Lower Back / Core'},
+  ]},
+  {title:'Rest',sub:'Active recovery days',rest:true,exs:[]},
+];
+
+let curDay=0;
+
+// ── Init ──────────────────────────────────────────────────────────────
+(function init(){
+  const tabs=document.getElementById('day-tabs');
+  PLAN.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='day-tab'+(i===0?' active':'');
+    el.textContent=d.title;
+    el.onclick=()=>{curDay=i;document.querySelectorAll('.day-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderWorkout();};
+    tabs.appendChild(el);
+  });
+  updStats();
+  renderWorkout();
+  renderStretchList();
+})();
+
+function updStats(){
+  const week=gymLog.filter(e=>isThisWeek(e.ts));
+  document.getElementById('s-total').textContent=sessionLog.length;
+  document.getElementById('s-week').textContent=week.length;
+  const str=calcStreak();
+  document.getElementById('s-streak').textContent=str;
+  document.getElementById('streak-num').textContent=str;
+}
+function isThisWeek(ts){const d=new Date(ts),n=new Date(),s=new Date(n);s.setDate(n.getDate()-n.getDay());s.setHours(0,0,0,0);return d>=s;}
+function calcStreak(){
+  if(!sessionLog.length)return 0;
+  const days=[...new Set(sessionLog.map(e=>new Date(e.ts).toDateString()))].map(d=>new Date(d)).sort((a,b)=>b-a);
+  let s=0,p=null;
+  for(const d of days){if(!p){s=1;p=d;continue;}const diff=(p-d)/864e5;if(diff<=2){s++;p=d;}else break;}
+  return s;
+}
+
+function showPane(id,el){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='progress')renderProgress();
+  if(id==='stretch')renderStretchList();
+  updStats();
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m||'✓ Logged!';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ── WORKOUT ────────────────────────────────────────────────────────────
+function renderWorkout(){
+  const d=PLAN[curDay];
+  const el=document.getElementById('workout-body');
+
+  if(d.rest){
+    el.innerHTML=`
+      <div class="rest-card">
+        <div class="rest-icon">✨</div>
+        <div class="rest-title">Rest & Recover</div>
+        <div class="rest-text">This is when your muscles actually grow. Rest is not optional — it's part of the program. Stay hydrated, get enough sleep, and maybe do the stretch routine if you feel like moving.</div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-title">💡 Good things to do on rest days</div>
+        <div class="tip-text">A walk, gentle yoga, stretching, or just doing nothing. What you should avoid: another hard workout. Your muscles are rebuilding right now.</div>
+      </div>`;
+    return;
+  }
+
+  let html=`<div class="tip-box"><div class="tip-title">💡 How to use this</div><div class="tip-text">Tap any exercise to expand it. Log how it felt — that's the most important thing week 1. Weight is optional until you feel comfortable.</div></div>`;
+
+  html+=d.exs.map((e,i)=>{
+    const key=d.title+'::'+e.n;
+    const isLogged=loggedToday.has(key);
+    const isOpen=openCard===key;
+    const feel=pendingFeel[key]||'';
+
+    const lastEntry=gymLog.find(g=>g.exercise===e.n);
+    const lastHint=lastEntry?`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Last time: ${lastEntry.weight?lastEntry.weight+'lbs × '+lastEntry.reps+'reps · ':''}<span class="hist-feel feel-${lastEntry.feeling}">${lastEntry.feeling}</span></div>`:'';
+
+    const feelHTML=`
+      <div class="feel-label">How did it feel?</div>
+      <div class="feel-row">
+        <div class="feel-btn${feel==='easy'?' sel-easy':''}" onclick="setFeel('${key}','easy')">😊 Easy</div>
+        <div class="feel-btn${feel==='good'?' sel-good':''}" onclick="setFeel('${key}','good')">💪 Good</div>
+        <div class="feel-btn${feel==='hard'?' sel-hard':''}" onclick="setFeel('${key}','hard')">🔥 Hard</div>
+      </div>`;
+
+    const w=pendingWeight[key]?.weight||'';
+    const r=pendingWeight[key]?.reps||'';
+
+    const weightHTML=`
+      <div class="optional-label">OPTIONAL — TRACK YOUR WEIGHT</div>
+      <div class="weight-row">
+        <input type="number" inputmode="decimal" min="0" placeholder="Weight (lbs)" id="w-${i}" value="${w}" oninput="setWeight('${key}',${i})">
+        <input type="number" inputmode="numeric" min="0" placeholder="Reps" id="r-${i}" value="${r}" oninput="setWeight('${key}',${i})">
+      </div>`;
+
+    const btnHTML=isLogged
+      ?`<div class="logged-summary">✅ Logged — great work!</div>`
+      :`<button class="log-btn" onclick="logEx('${key}',${i})" ${!feel?'disabled':''}>Log ${e.n}</button>`;
+
+    return `
+      <div class="ex-card${isLogged?' logged':''}${isOpen?' open':''}" id="ec-${i}">
+        <div class="ex-head" onclick="toggleCard('${key}',${i})">
+          <div>
+            <div class="ex-name">${e.n}</div>
+            <div class="ex-sub">${e.s} · <span style="color:var(--muted);font-size:11px;">${e.muscle}</span></div>
+          </div>
+          <div class="ex-right">
+            ${isLogged?'<span class="ex-check">✅</span>':''}
+            <span class="ex-arrow">▼</span>
+          </div>
+        </div>
+        <div class="ex-body">
+          ${lastHint}
+          <div class="why-box">
+            <div class="why-label">Why this exercise?</div>
+            <div class="why-text">${e.why}</div>
+          </div>
+          ${feelHTML}
+          ${weightHTML}
+          ${btnHTML}
+        </div>
+      </div>`;
+  }).join('');
+
+  // "Finish session" button
+  const allLogged=d.exs.every((_,i)=>loggedToday.has(d.title+'::'+d.exs[i].n));
+  if(allLogged){
+    html+=`<button class="log-btn done" onclick="finishSession()" style="margin-top:8px;">🎉 Save This Session</button>`;
+  }
+
+  el.innerHTML=html;
+}
+
+let openCard=null;
+function toggleCard(key,i){
+  openCard=openCard===key?null:key;
+  renderWorkout();
+  setTimeout(()=>{const c=document.getElementById('ec-'+i);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+}
+
+function setFeel(key,feel){
+  pendingFeel[key]=feel;
+  renderWorkout();
+}
+
+function setWeight(key,i){
+  const w=document.getElementById('w-'+i)?.value;
+  const r=document.getElementById('r-'+i)?.value;
+  if(w||r)pendingWeight[key]={weight:parseFloat(w)||null,reps:parseInt(r)||null};
+}
+
+function logEx(key,i){
+  setWeight(key,i);
+  const feel=pendingFeel[key];
+  if(!feel)return;
+  const exName=key.split('::')[1];
+  const pw=pendingWeight[key];
+  gymLog.unshift({
+    id:Date.now(),ts:Date.now(),
+    date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),
+    exercise:exName,
+    feeling:feel,
+    weight:pw?.weight||null,
+    reps:pw?.reps||null,
+  });
+  LS.set('miklyn_gym',gymLog);
+  loggedToday.add(key);
+  openCard=null;
+  renderWorkout();
+  updStats();
+  toast('✓ '+exName+' logged!');
+}
+
+function finishSession(){
+  const d=PLAN[curDay];
+  sessionLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),day:d.title});
+  LS.set('miklyn_sess',sessionLog);
+  loggedToday=new Set();
+  pendingFeel={};pendingWeight={};openCard=null;
+  updStats();renderWorkout();
+  toast('🎉 Session saved!');
+}
+
+// ── STRETCH ────────────────────────────────────────────────────────────
+const STRETCHES=[
+  {n:'Cat-Cow',s:60,area:'Spine',d:'On hands and knees. Arch your back up slowly (cat), then let it drop down (cow). Move with your breath. No rushing.',h:'10 slow reps'},
+  {n:'Child\'s Pose',s:60,area:'Back + Hips',d:'Kneel down, sit back on your heels, reach arms forward on the floor. Let your back fully relax. Great for after any workout.',h:'60 seconds'},
+  {n:'Figure-4 Hip Stretch',s:120,area:'Hips + Glutes',d:'Lie on your back. Cross one ankle over the opposite knee. Pull that leg toward you. You\'ll feel it in your glute. Switch sides.',h:'60 sec each side'},
+  {n:'Seated Forward Fold',s:60,area:'Hamstrings',d:'Sit with legs straight out. Reach toward your feet as far as comfortable. Let gravity do the work — never force it or bounce.',h:'60 seconds'},
+  {n:'Doorway Chest Opener',s:40,area:'Chest + Shoulders',d:'Stand in a doorway, arms at 90°, press forearms into the frame and lean forward gently. Opens up the chest and counters the bench press.',h:'30–40 seconds'},
+  {n:'Standing Quad Stretch',s:60,area:'Quads',d:'Stand near a wall for balance. Bend one knee, grab your ankle, pull heel toward your glute. Keep knees together. Switch sides.',h:'30 sec each side'},
+  {n:'Overhead Lat Stretch',s:40,area:'Lats + Shoulders',d:'Reach both arms overhead, grab one wrist, lean gently to one side until you feel the stretch along your side. Switch sides.',h:'20 sec each side'},
+];
+
+let curStr=null,strInt=null,strLeft=0,strTot=0,strRun=false,strDone=new Set();
+
+function renderStretchList(){
+  const el=document.getElementById('stretch-list');
+  let lastArea='';
+  el.innerHTML=STRETCHES.map((s,i)=>{
+    let h='';
+    if(s.area!==lastArea){h=`<div class="slabel">${s.area}</div>`;lastArea=s.area;}
+    const done=strDone.has(i),active=curStr===i;
+    const ytUrl=`https://www.youtube.com/results?search_query=${encodeURIComponent('how to do '+s.n+' stretch for beginners')}`;
+    return `${h}<div class="stretch-card${active?' active':''}${done&&!active?' done':''}" onclick="selStr(${i})">
+      <div class="stretch-top"><div class="stretch-name">${done?'✓ ':''} ${s.n}</div><div class="stretch-time">${s.h}</div></div>
+      <div class="stretch-desc">${s.d}</div>
+      <a href="${ytUrl}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block;margin-top:8px;font-size:11px;font-weight:600;color:var(--rose);text-decoration:none;">▶ Watch demo on YouTube →</a>
+    </div>`;
+  }).join('');
+  document.getElementById('str-done').textContent=strDone.size;
+}
+
+function selStr(i){
+  clearInterval(strInt);strRun=false;curStr=i;strLeft=STRETCHES[i].s;strTot=STRETCHES[i].s;
+  document.getElementById('t-name').textContent=STRETCHES[i].n;
+  document.getElementById('t-state').textContent='READY';
+  updTimer();
+  document.getElementById('t-go').style.display='inline-block';
+  document.getElementById('t-pause').style.display='none';
+  document.getElementById('t-done').style.display='inline-block';
+  renderStretchList();
+}
+function updTimer(){
+  const m=Math.floor(strLeft/60),s=strLeft%60;
+  const el=document.getElementById('t-num');
+  el.textContent=m>0?`${m}:${s.toString().padStart(2,'0')}`:`${s}s`;
+  el.className='timer-num'+(strRun?' running':'');
+  document.getElementById('t-fill').style.width=(strTot>0?Math.round(((strTot-strLeft)/strTot)*100):0)+'%';
+}
+function tStart(){
+  if(curStr===null)return;strRun=true;
+  document.getElementById('t-go').style.display='none';
+  document.getElementById('t-pause').style.display='inline-block';
+  document.getElementById('t-state').textContent='TIMER RUNNING';
+  updTimer();
+  strInt=setInterval(()=>{strLeft--;updTimer();if(strLeft<=0){clearInterval(strInt);strRun=false;tDone();}},1000);
+}
+function tPause(){
+  clearInterval(strInt);strRun=false;
+  document.getElementById('t-go').style.display='inline-block';
+  document.getElementById('t-pause').style.display='none';
+  document.getElementById('t-state').textContent='PAUSED';
+  updTimer();
+}
+function tDone(){
+  clearInterval(strInt);strRun=false;
+  if(curStr!==null)strDone.add(curStr);
+  const el=document.getElementById('t-num');
+  el.className='timer-num done';el.textContent='Done!';
+  document.getElementById('t-fill').style.width='100%';
+  document.getElementById('t-go').style.display='none';
+  document.getElementById('t-pause').style.display='none';
+  document.getElementById('t-done').style.display='none';
+  const all=strDone.size===STRETCHES.length;
+  document.getElementById('t-state').textContent=all?'ALL DONE — AMAZING! 🎉':'COMPLETE';
+  document.getElementById('t-name').textContent=all?'Full routine done!':( ()=>{const nx=STRETCHES.findIndex((_,i)=>!strDone.has(i));return nx>=0?'Next: '+STRETCHES[nx].n:'—';})();
+  if(all){strLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString()});LS.set('miklyn_str',strLog);toast('Stretch routine complete! 🧘');}
+  curStr=null;renderStretchList();
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────
+function renderProgress(){
+  const el=document.getElementById('progress-body');
+  if(!gymLog.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📈</div><div class="empty-text">No workouts yet</div><div class="empty-sub">Log a few sessions and your progress appears here</div></div>`;
+    return;
+  }
+
+  // Group by exercise, show max weight progression
+  const byEx={};
+  gymLog.forEach(e=>{
+    if(!byEx[e.exercise])byEx[e.exercise]=[];
+    byEx[e.exercise].push(e);
+  });
+
+  let html=`<div class="slabel">Exercises you've logged</div>`;
+
+  html+=Object.entries(byEx).map(([ex,entries])=>{
+    const withWeight=entries.filter(e=>e.weight);
+    const maxW=withWeight.length?Math.max(...withWeight.map(e=>e.weight)):null;
+    const firstW=withWeight.length?withWeight[withWeight.length-1].weight:null;
+    const isPR=withWeight.length>1&&entries[0].weight===maxW;
+    const feelCounts={easy:0,good:0,hard:0};
+    entries.forEach(e=>feelCounts[e.feeling]=(feelCounts[e.feeling]||0)+1);
+    const topFeel=Object.entries(feelCounts).sort((a,b)=>b[1]-a[1])[0];
+
+    return `<div class="progress-card">
+      <div class="prog-ex">${ex} ${isPR?'<span class="pr-badge">PR ↑</span>':''}</div>
+      <div class="prog-row"><span>${entries.length} session${entries.length>1?'s':''} logged</span><span style="color:var(--muted)">Feeling: <span class="hist-feel feel-${topFeel[0]}">${topFeel[0]}</span> most</span></div>
+      ${maxW?`<div class="prog-row"><span style="font-size:11px;color:var(--muted)">Start: ${firstW}lbs → Best: <strong style="color:var(--rose)">${maxW}lbs</strong></span></div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${Math.min(100,Math.round((maxW/200)*100))}%"></div></div>`:'<div style="font-size:12px;color:var(--muted);margin-top:4px;">Add weight tracking to see your progress here</div>'}
+    </div>`;
+  }).join('');
+
+  // Recent history
+  html+=`<div class="slabel" style="margin-top:20px;">Recent sessions</div>`;
+  html+=gymLog.slice(0,15).map(e=>`
+    <div class="hist-card">
+      <div class="hist-top">
+        <div class="hist-ex">${e.exercise}</div>
+        <div class="hist-date">${e.date}</div>
+      </div>
+      <span class="hist-feel feel-${e.feeling}">${e.feeling}</span>
+      ${e.weight?`<div class="hist-weight">${e.weight}lbs × ${e.reps} reps</div>`:''}
+    </div>`).join('');
+
+  el.innerHTML=html;
+}
+
+updStats();
+</script>
+</body>
+</html>
