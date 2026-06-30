@@ -249,8 +249,8 @@ select.field option{background:#1a1a1a;}
       </div>
       <div class="srow">
         <div class="stat"><div class="sv" id="sdcount">0</div><div class="sl">DONE</div></div>
-        <div class="stat"><div class="sv">8</div><div class="sl">TOTAL</div></div>
-        <div class="stat"><div class="sv">20</div><div class="sl">MIN</div></div>
+        <div class="stat"><div class="sv">10</div><div class="sl">TOTAL</div></div>
+        <div class="stat"><div class="sv">25</div><div class="sl">MIN</div></div>
       </div>
       <div id="strlist"></div>
     </div>
@@ -428,7 +428,7 @@ const PLAN=[
   {title:'Core+Bal',sub:'End of every gym session · 8 min',cardio:false,exs:[
     {n:'Abdominal Crunch',s:'2 × 15',b:'Core',t:'Light weight. Exhale and squeeze abs at top. Pairs with back extension for full core balance.'},
     {n:'Back Extension',s:'2 × 15',b:'Core',t:'Works your lower back. Together with crunches builds a strong stable spine.'},
-    {n:'Sit-to-Stand Practice',s:'5 reps × 2',b:'Goal',t:'Sit cross-legged on mat. Stand using as little hand support as possible. Work toward zero hands.'},
+    {n:'Sit-to-Stand Practice',s:'5 reps × 2',b:'Goal',t:'Sit cross-legged on mat. Stand using as little hand support as possible. Work toward zero hands. This is considered one of the best predictors of longevity — studies show people who can do it without hands live significantly longer. Track your progress: 2 hands → 1 hand → fingertips → zero hands.'},
     {n:'Single-leg Balance Hold',s:'3 × 30 sec each',b:'Balance',t:'Near a wall for safety. Progress: eyes open → eyes closed → stand on folded towel.'},
   ]},
   {title:'Schedule',sub:'Full week view',cardio:false,exs:[
@@ -558,15 +558,23 @@ function repeatISet(key,cardIdx){
 renderPlan();
 
 // ── STRETCH ───────────────────────────────────────────────────────────
+// Flexibility for 60+ — sequenced from joint warm-up → hips → spine → legs → floor work
 const STRS=[
-  {n:'Knee-to-chest',s:60,a:'Lower back',d:'Lie on back. Pull one knee to chest, hold, then switch. Releases lower back tension.',h:'30 sec each side'},
-  {n:'Cat-cow',s:60,a:'Lower back',d:'On hands and knees. Arch back up (cat), let it sag down (cow). Move slowly.',h:'10 slow reps'},
-  {n:"Child's pose",s:60,a:'Lower back + hips',d:'Kneel, sit back on heels, stretch arms forward on floor, let back relax completely.',h:'60 sec'},
-  {n:'Pigeon pose',s:180,a:'Hips / glutes',d:'From all fours, bring one knee forward behind wrist. Extend other leg back. Sink hips. Switch sides.',h:'90 sec each side'},
-  {n:'Figure-4 stretch',s:120,a:'Hips / glutes',d:'Lie on back. Cross one ankle over opposite knee. Pull uncrossed leg toward you. Switch sides.',h:'60 sec each side'},
-  {n:'Seated forward fold',s:60,a:'Hamstrings',d:'Sit with legs straight. Reach toward your feet. Let gravity do the work — never force it.',h:'60 sec'},
-  {n:'Standing hamstring stretch',s:60,a:'Hamstrings',d:'Place one heel on chair or step. Keep leg straight, lean forward slightly. Switch sides.',h:'30 sec each side'},
-  {n:'Lying hamstring stretch',s:60,a:'Hamstrings',d:'Lie on back. Loop a towel around one foot, gently pull leg toward you. Keep leg straight.',h:'30 sec each side'},
+  // Joint Warm-Up
+  {n:'Ankle Circles',s:60,a:'Joint Warm-Up',d:'Sit in a chair. Lift one foot off the floor and draw slow circles with your toes — 10 clockwise, 10 counter-clockwise. Switch feet. Ankle mobility is the #1 predictor of fall risk after 60. Do this every morning.',h:'30 sec each foot'},
+  {n:'Cat-Cow',s:60,a:'Joint Warm-Up',d:'On hands and knees (or seated in a chair with hands on knees). Arch your back up toward the ceiling slowly (cat), then let it sag down (cow). Move with your breath. Wakes up every vertebra in your spine.',h:'10 slow reps'},
+  // Hips — most critical for seniors
+  {n:'Knee-to-Chest',s:90,a:'Hips & Lower Back',d:'Lie on your back. Pull one knee gently to your chest and hold 30 seconds, then switch. Releases compression in the lower back that builds up from sleeping and sitting. Do this one before you get out of bed.',h:'30 sec each side'},
+  {n:'Figure-4 Hip Stretch',s:120,a:'Hips & Lower Back',d:'Lie on your back. Cross your right ankle over your left knee. Pull your left thigh toward you until you feel a deep stretch in your right hip. Hold, switch sides. Hip flexibility is directly tied to balance and fall prevention — this is the most important stretch in this routine.',h:'60 sec each side'},
+  {n:'Hip Flexor Stretch',s:90,a:'Hips & Lower Back',d:'Kneel on one knee next to a chair for balance. Tuck your pelvis slightly and shift your weight forward until you feel a stretch in the front of the hip of the kneeling leg. Sitting tightens these muscles and pulls the lower back into pain. Switch sides.',h:'45 sec each side'},
+  // Spine & Posture
+  {n:'Doorway Chest Opener',s:45,a:'Spine & Posture',d:'Stand in a doorway. Place both forearms against the frame at 90°. Lean your chest forward gently until you feel a stretch across your chest and shoulders. Counteracts the forward hunching that happens naturally with age. Also opens your breathing.',h:'45 sec'},
+  {n:'Seated Thoracic Rotation',s:60,a:'Spine & Posture',d:'Sit upright in a chair, arms crossed over chest. Rotate your upper body slowly to the right as far as comfortable, hold 2 seconds, return, repeat left. The upper back loses rotation first as we age — this matters for driving, golf, anything involving turning.',h:'30 sec each side'},
+  // Hamstrings & Calves
+  {n:'Seated Forward Fold',s:60,a:'Hamstrings & Calves',d:'Sit on the floor with legs straight out. Reach toward your feet as far as comfortable — even reaching your shins is fine. Tight hamstrings pull directly on the lower back. Never force it or bounce. Let gravity do the work over time.',h:'60 sec'},
+  {n:'Standing Calf Stretch',s:60,a:'Hamstrings & Calves',d:'Face a wall, hands on it for balance. Step one foot back, heel flat on floor, and lean forward. You\'ll feel the stretch in your calf and Achilles. Calf and ankle tightness is a major contributor to balance problems and falls. Switch sides.',h:'30 sec each side'},
+  // Floor Work
+  {n:"Child's Pose",s:60,a:'Floor Cool-Down',d:'Kneel, sit back toward your heels, reach arms forward on the floor, let your back fully relax. If your heels don\'t reach your glutes yet, put a folded blanket between them. Hold and breathe. This is the full-body reset — stretches lower back, hips, and shoulders simultaneously.',h:'60 sec'},
 ];
 let curStr=null,strInt=null,strLeft=0,strTot=0,strRun=false,strDoneSet=new Set();
 function renderStrList(){

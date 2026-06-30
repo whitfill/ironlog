@@ -492,9 +492,11 @@ function renderStretchList(){
     let h='';
     if(s.area!==lastArea){h=`<div class="slabel">${s.area}</div>`;lastArea=s.area;}
     const done=strDone.has(i),active=curStr===i;
+    const ytUrl=`https://www.youtube.com/results?search_query=${encodeURIComponent('how to do '+s.n+' stretch for beginners')}`;
     return `${h}<div class="stretch-card${active?' active':''}${done&&!active?' done':''}" onclick="selStr(${i})">
       <div class="stretch-top"><div class="stretch-name">${done?'✓ ':''} ${s.n}</div><div class="stretch-time">${s.h}</div></div>
       <div class="stretch-desc">${s.d}</div>
+      <a href="${ytUrl}" target="_blank" onclick="event.stopPropagation()" style="display:inline-block;margin-top:8px;font-size:11px;font-weight:600;color:var(--rose);text-decoration:none;">▶ Watch demo on YouTube →</a>
     </div>`;
   }).join('');
   document.getElementById('str-done').textContent=strDone.size;
