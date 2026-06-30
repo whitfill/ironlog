@@ -372,10 +372,19 @@ function renderGymSets(){
   const l=document.getElementById('slist'),b=document.getElementById('savebtn');
   if(!curSets.length){l.innerHTML='';b.disabled=true;return;}
   const vol=curSets.reduce((a,s)=>a+s.weight*s.reps,0);
+  const last=curSets[curSets.length-1];
   l.innerHTML='<div style="margin-top:12px;">'+
     curSets.map((s,i)=>`<div class="si"><div class="sn">${i+1}</div><div style="flex:1;font-size:12px;">${s.weight} lbs × ${s.reps} reps</div><button class="sdel" onclick="removeGSet(${i})">×</button></div>`).join('')+
-    `<div class="vrow">VOLUME <span style="color:var(--gold)">${vol.toLocaleString()} lbs</span></div></div>`;
+    `<div class="vrow">VOLUME <span style="color:var(--gold)">${vol.toLocaleString()} lbs</span></div>
+    <button class="btn btn-ghost" onclick="repeatSet()" style="margin-top:10px;font-size:13px;letter-spacing:1.5px;">↻ REPEAT (${last.weight} lbs × ${last.reps} reps)</button>
+    </div>`;
   b.disabled=false;
+}
+function repeatSet(){
+  if(!curSets.length)return;
+  const last=curSets[curSets.length-1];
+  curSets.push({weight:last.weight,reps:last.reps});
+  renderGymSets();
 }
 function saveToLog(machine,sets){
   gymLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),machine,sets});
@@ -471,9 +480,12 @@ function renderPlan(){
     let setsHTML='';
     if(sets.length){
       const vol=sets.reduce((a,s)=>a+s.weight*s.reps,0);
+      const last=sets[sets.length-1];
       setsHTML=`<div class="ilog-sets">`+
         sets.map((s,si)=>`<div class="ilog-si"><div class="ilog-sn">${si+1}</div><div style="flex:1">${s.weight} lbs × ${s.reps} reps</div><button class="ilog-del" onclick="removeISet('${key}',${si})">×</button></div>`).join('')+
-        `<div class="vrow" style="margin-top:8px;padding-top:8px;">VOLUME <span style="color:var(--gold)">${vol.toLocaleString()} lbs</span></div></div>`;
+        `<div class="vrow" style="margin-top:8px;padding-top:8px;">VOLUME <span style="color:var(--gold)">${vol.toLocaleString()} lbs</span></div>
+        <button class="ilog-add" onclick="repeatISet('${key}',${i})" style="width:100%;margin-top:8px;">↻ REPEAT (${last.weight} lbs × ${last.reps})</button>
+        </div>`;
     }
 
     const lhintHTML=lw!==null?`<div class="ilog-lhint">↑ Last session: ${lw} lbs</div>`:'';
@@ -536,6 +548,12 @@ function saveIEx(key){
   delete inlineSets[key];
   updH();renderPlan();
   toast('✓ '+machineName+' saved!');
+}
+function repeatISet(key,cardIdx){
+  if(!inlineSets[key]||!inlineSets[key].length)return;
+  const last=inlineSets[key][inlineSets[key].length-1];
+  inlineSets[key].push({weight:last.weight,reps:last.reps});
+  renderPlan();
 }
 renderPlan();
 
