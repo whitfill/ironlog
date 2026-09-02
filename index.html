@@ -10,7 +10,7 @@
 <title>Iron Log</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#e8c840;--green:#1D9E75;--gl:#E1F5EE;--gd:#085041;--bg:#0a0a0a;--sur:#111;--bdr:#1e1e1e;--txt:#f0ede8;--mut:#555;--dim:#333;}
+:root{--gold:#e8c840;--green:#1D9E75;--gl:#E1F5EE;--gd:#085041;--blue:#4aa8d8;--bg:#0a0a0a;--sur:#111;--bdr:#1e1e1e;--txt:#f0ede8;--mut:#555;--dim:#333;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'DM Mono',monospace;overscroll-behavior:none;}
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
@@ -146,6 +146,32 @@ select.field option{background:#1a1a1a;}
 .empty{text-align:center;padding:50px 20px;color:var(--mut);}
 #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--gold);color:#0a0a0a;padding:8px 22px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;transition:transform .3s;z-index:99;pointer-events:none;}
 #toast.show{transform:translateX(-50%) translateY(0);}
+/* 6-tab nav */
+.nb{padding:8px 1px 6px;}
+.ni{font-size:15px;}
+.nl{font-size:9.5px;letter-spacing:.5px;}
+/* Progression nudge */
+.badge-up{background:#3a1f00;color:#ff9a3c;border-color:#5a3a00;}
+.progression-tip{font-size:12px;color:#ff9a3c;margin-top:5px;line-height:1.5;}
+.warmup-line{font-size:13px;color:#999;line-height:1.55;margin-bottom:14px;}
+.recovery-note{background:#1a1200;border:1px solid #3a2a00;padding:12px 13px;margin-bottom:12px;}
+.recovery-note-title{font-size:11px;color:#ff9a3c;letter-spacing:1px;margin-bottom:4px;font-weight:500;}
+.recovery-note-text{font-size:13px;color:#c99a5a;line-height:1.6;}
+/* Body composition */
+.body-note{background:#0a1220;border:1px solid #1a3a4a;padding:13px 14px;margin-bottom:12px;}
+.body-note-title{font-size:11px;color:var(--blue);letter-spacing:1px;margin-bottom:4px;font-weight:500;}
+.body-note-text{font-size:13px;color:#5a8aa0;line-height:1.65;}
+.bprog-row{margin-bottom:14px;}
+.bprog-row:last-child{margin-bottom:0;}
+.bprog-top{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:5px;}
+.bprog-top span:last-child{color:var(--blue);}
+.bprog-bar{background:var(--bdr);height:7px;border-radius:2px;overflow:hidden;}
+.bprog-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .5s ease;}
+.bprog-bot{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:4px;}
+.spark-label{font-size:11px;color:var(--mut);letter-spacing:1px;margin-bottom:2px;}
+.spark-range{font-size:12px;color:#888;margin-top:2px;margin-bottom:14px;}
+.spark-range:last-child{margin-bottom:0;}
+.spark-range b{color:var(--txt);font-weight:500;}
 </style>
 </head>
 <body>
@@ -161,6 +187,7 @@ select.field option{background:#1a1a1a;}
     <div class="nb" onclick="showPane('plan',this)"><div class="ni">📋</div><div class="nl">PLAN</div></div>
     <div class="nb" onclick="showPane('stretch',this)"><div class="ni">🧘</div><div class="nl">STRETCH</div></div>
     <div class="nb" onclick="showPane('walk',this)"><div class="ni">🚶</div><div class="nl">WALK</div></div>
+    <div class="nb" onclick="showPane('body',this)"><div class="ni">⚖️</div><div class="nl">BODY</div></div>
     <div class="nb" onclick="showPane('history',this)"><div class="ni">📈</div><div class="nl">HISTORY</div></div>
   </div>
   <div id="content">
@@ -228,7 +255,7 @@ select.field option{background:#1a1a1a;}
     <div id="pane-plan" class="pane">
       <div class="obox">
         <div class="ot">AT THE GYM — HOW TO USE THIS TAB</div>
-        <div class="od">Tap any exercise to expand it. Log your sets right there — no tab switching. Green border = logged. Remember: when you hit 3 sets of 12 clean reps → increase weight 5 lbs next session.</div>
+        <div class="od">Tap any exercise to expand it. Log your sets right there — no tab switching. Green border = logged. Hit the top of your rep range on every set? We'll flag it <span style="color:#ff9a3c">↑ ADD WEIGHT</span> — bump one increment and drop back to the bottom of the range next time.</div>
       </div>
       <div class="dts" id="dtabs"></div>
       <div id="planbody"></div>
@@ -290,12 +317,47 @@ select.field option{background:#1a1a1a;}
       <div id="whist"></div>
     </div>
 
+    <!-- BODY COMPOSITION -->
+    <div id="pane-body" class="pane">
+      <div class="srow">
+        <div class="stat"><div class="sv" id="bfw">–</div><div class="sl">WEIGHT</div></div>
+        <div class="stat"><div class="sv" id="bfb">–</div><div class="sl">BODY FAT %</div></div>
+        <div class="stat"><div class="sv" id="bfl">–</div><div class="sl">LEAN LB</div></div>
+      </div>
+
+      <div class="slabel">PROGRESS TO TARGET</div>
+      <div class="sbox" id="bprog"></div>
+
+      <div class="slabel">TREND</div>
+      <div class="sbox" id="btrend"></div>
+
+      <div class="slabel">LOG A CHECK-IN</div>
+      <div class="sbox">
+        <div style="margin-bottom:10px;"><div style="font-size:9px;color:var(--mut);letter-spacing:2px;margin-bottom:4px;">DATE</div><input class="field" id="b-date" type="date"></div>
+        <div class="r2" style="margin-bottom:10px;">
+          <div><div style="font-size:9px;color:var(--mut);letter-spacing:2px;margin-bottom:4px;">WEIGHT (lbs)</div><input class="field" id="b-weight" type="number" inputmode="decimal" min="0" placeholder="228.6"></div>
+          <div><div style="font-size:9px;color:var(--mut);letter-spacing:2px;margin-bottom:4px;">BODY FAT %</div><input class="field" id="b-bf" type="number" inputmode="decimal" min="0" placeholder="36.1"></div>
+        </div>
+        <div style="margin-bottom:12px;"><div style="font-size:9px;color:var(--mut);letter-spacing:2px;margin-bottom:4px;">WAIST (in) — optional</div><input class="field" id="b-waist" type="number" inputmode="decimal" min="0" placeholder="42"></div>
+        <button class="btn btn-gold" onclick="saveBody()">SAVE CHECK-IN</button>
+      </div>
+
+      <div class="body-note">
+        <div class="body-note-title">📊 TRACK THE TREND, NOT THE DAY</div>
+        <div class="body-note-text">Scale weight swings day to day with water and food. Retest body fat + waist monthly and judge progress on that trend — not today's number.</div>
+      </div>
+
+      <div class="slabel">CHECK-IN HISTORY</div>
+      <div id="bhist"></div>
+    </div>
+
     <!-- HISTORY -->
     <div id="pane-history" class="pane">
       <div class="srow">
         <div class="stat"><div class="sv" id="hg">0</div><div class="sl">GYM</div></div>
         <div class="stat"><div class="sv" id="hst">0</div><div class="sl">STRETCHES</div></div>
         <div class="stat"><div class="sv" id="hw">0</div><div class="sl">WALKS</div></div>
+        <div class="stat"><div class="sv" id="hbc">0</div><div class="sl">CHECK-INS</div></div>
       </div>
       <div id="hbody"></div>
     </div>
@@ -309,6 +371,12 @@ const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{
 let gymLog=LS.get('il4_gym')||[];
 let walkLog=LS.get('il4_walk')||[];
 let strLog=LS.get('il4_str')||[];
+let bodyLog=LS.get('il4_body')||[];
+if(!bodyLog.length){
+  bodyLog=[{id:1,ts:new Date('2026-09-02T12:00:00').getTime(),date:'Wed, Sep 2, 2026',weightLb:228.6,bodyFatPct:36.1,waistIn:null,baseline:true}];
+  LS.set('il4_body',bodyLog);
+}
+const BODY_TARGETS={baselineBF:36.1,baselineLb:228.6,milestoneBF:28,milestoneLb:203,goalBF:22,goalLb:187};
 let inlineSets={};
 let inlineOpen=null;
 let selIntervals=5;
@@ -342,6 +410,7 @@ function showPane(id,el){
   if(id==='walk')renderWalkHist();
   if(id==='stretch')renderStrList();
   if(id==='plan')renderPlan();
+  if(id==='body')renderBody();
 }
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m||'✓ SAVED!';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
@@ -399,72 +468,108 @@ function saveEx(){
 }
 document.getElementById('inr').addEventListener('keydown',e=>{if(e.key==='Enter')addSet();});
 
-// ── PLAN ──────────────────────────────────────────────────────────────
+// ── PLAN — Machines, Miles & Recovery (5-day upper/lower split) ────────
+const RECOVERY_LIFT='🔥 Sauna: fine anytime after this session. 🧊 Cold plunge: skip it for 4–6h after lifting — save it for tomorrow morning or a rest day.';
+const RECOVERY_OFF='🔥 Sauna OK anytime. 🧊 Cold plunge OK today.';
 const PLAN=[
-  {title:'Day 1',sub:'Push + Legs · Monday',cardio:true,exs:[
-    {n:'Chest Press',s:'3 × 10–12',b:'Primary',t:'Handles at mid-chest. Press straight out, don\'t lock elbows. Return slowly — 3 seconds back.'},
-    {n:'Shoulder Press',s:'3 × 10–12',b:'Primary',t:'Don\'t shrug shoulders up. Press 2 sec up, lower 3 sec. Stop just short of lockout at top.'},
-    {n:'Pec Fly / Rear Delt',s:'2 × 12–15',b:'Finisher',t:'Elbows slightly bent throughout. Feel the stretch wide, squeeze at narrow. Lighter weight.'},
-    {n:'Leg Press',s:'3 × 10–12',b:'Primary',t:'Feet shoulder-width, midway up the plate. Lower to 90° knee bend. Back flat on seat.'},
-    {n:'Leg Extension',s:'2 × 12–15',b:'Finisher',t:'Squeeze 1 sec at top. Lower slowly. Builds quad strength needed for getting off the floor.'},
-    {n:'Abdominal Crunch',s:'2 × 15',b:'Core',t:'Light weight. Squeeze abs, not neck. Exhale on the crunch. Slow and controlled.'},
+  {title:'Mon',dayOfWeek:'Mon',name:'Lower Body A',focus:'Quads',loggable:true,cardio:true,
+   warmup:'5 min easy bike/elliptical + bodyweight squats & leg swings',recovery:RECOVERY_LIFT,
+   exs:[
+    {n:'Leg Press',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Feet shoulder-width, midway on the plate. Lower to a 90° knee bend, push through heels. Don\'t lock knees at top.'},
+    {n:'Leg Extension',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Squeeze 1 sec at top, lower slowly. Keep your back against the pad the whole rep.'},
+    {n:'Seated Leg Curl',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Hold 1 sec at full contraction. Control the release — don\'t let the stack drop.'},
+    {n:'Calf Raise (machine)',sets:3,repsMin:15,repsMax:20,b:'Finisher',t:'Full range — stretch at the bottom, rise all the way up on your toes. Pause at the top.'},
+    {n:'Hip Abductor / Adductor',sets:2,repsMin:15,repsMax:15,b:'Finisher',t:'Slow and controlled both directions. Moderate weight — this is about hip stability, not max load.'},
   ]},
-  {title:'Day 2',sub:'Pull + Hamstrings · Wednesday',cardio:true,exs:[
-    {n:'Lat Pulldown',s:'3 × 10–12',b:'Primary',t:'Pull to upper chest — never behind neck. Lean slightly back. Squeeze shoulder blades at bottom.'},
-    {n:'Seated Row',s:'3 × 10–12',b:'Primary',t:'Pull to belly button. Don\'t round back or rock. Think "elbows to back pockets."'},
-    {n:'Biceps Curl',s:'2 × 12–15',b:'Finisher',t:'Full range. Don\'t let stack touch between reps — keep tension on the muscle the whole time.'},
-    {n:'Seated Leg Curl',s:'3 × 10–12',b:'Primary',t:'Hold 1 sec at top. Lower 3–4 seconds slowly. The slow lowering is where real gains happen.'},
-    {n:'Calf Extension',s:'3 × 15',b:'Primary',t:'Full range — all the way up on toes, all the way down. Calves respond well to higher reps.'},
-    {n:'Back Extension',s:'2 × 15',b:'Core',t:'Bodyweight or light weight. Don\'t hyperextend at top. Balances abs and protects spine.'},
+  {title:'Tue',dayOfWeek:'Tue',name:'Upper Body A',focus:'Push',loggable:true,cardio:true,
+   warmup:'5 min easy cardio + arm circles & band pull-aparts',recovery:RECOVERY_LIFT,
+   exs:[
+    {n:'Chest Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Handles at mid-chest. Press straight out, don\'t lock elbows. 3-second return.'},
+    {n:'Shoulder Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Don\'t shrug shoulders up. Press 2 sec up, lower 3 sec — stop just short of lockout.'},
+    {n:'Pec Deck / Cable Fly',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Elbows slightly bent throughout. Feel the stretch wide, squeeze narrow. Lighter weight.'},
+    {n:'Triceps Pushdown',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Elbows pinned to your sides. Full extension at the bottom, controlled return.'},
+    {n:'Lateral Raise (machine/cable)',sets:2,repsMin:12,repsMax:15,b:'Finisher',t:'Lead with your elbows, not your hands. Stop at shoulder height — no swinging.'},
   ]},
-  {title:'Day 3',sub:'Strength + Hips · Friday',cardio:true,exs:[
-    {n:'Leg Press',s:'3 × 8–10',b:'Heavy',t:'Same form, slightly more weight than Day 1. Fewer reps + more weight = raw strength building.'},
-    {n:'Hammer Strength Chest Press',s:'3 × 8–10',b:'Heavy',t:'Each arm works independently — great for balanced strength. Heavier than Day 1 chest work.'},
-    {n:'Hammer Strength Front Pulldown',s:'3 × 8–10',b:'Heavy',t:'Pull with your elbows, not your hands. Squeeze lats hard at the bottom of each rep.'},
-    {n:'Hammer Strength MTS Row',s:'3 × 10–12',b:'Primary',t:'Chest supported — eliminates lower back from the movement. Pure mid-back work.'},
-    {n:'Triceps Press',s:'2 × 12–15',b:'Finisher',t:'Full extension at the bottom. Control the return slowly. Don\'t let elbows flare out wide.'},
-    {n:'Dependent Curl',s:'2 × 12–15',b:'Finisher',t:'Full range both directions. Keep upper arms still — only your forearms should move.'},
+  {title:'Wed',dayOfWeek:'Wed',name:'Balance, Mobility & Core',focus:'Active recovery',loggable:true,cardio:false,
+   warmup:'No heavy lifting today — this is a mobility & core day',recovery:RECOVERY_OFF,
+   exs:[
+    {n:'Plank',sets:3,repsMin:30,repsMax:45,unit:'seconds',b:'Core',t:'Straight line head to heels. Squeeze glutes and brace your abs — don\'t let your hips sag.'},
+    {n:'Dead Bug',sets:3,repsMin:10,repsMax:10,perSide:true,b:'Core',t:'Lower back pressed flat to the floor the whole time. Slow opposite arm/leg extensions.'},
+    {n:'Bird Dog',sets:3,repsMin:10,repsMax:10,perSide:true,b:'Core',t:'Extend opposite arm and leg, hold 2 sec. Keep hips square — don\'t rotate.'},
+    {n:'Pallof Press (cable)',sets:3,repsMin:12,repsMax:12,perSide:true,b:'Core',t:'Press straight out and resist the cable\'s pull to rotate you — that resistance IS the exercise.'},
   ]},
-  {title:'Core+Bal',sub:'End of every gym session · 8 min',cardio:false,exs:[
-    {n:'Abdominal Crunch',s:'2 × 15',b:'Core',t:'Light weight. Exhale and squeeze abs at top. Pairs with back extension for full core balance.'},
-    {n:'Back Extension',s:'2 × 15',b:'Core',t:'Works your lower back. Together with crunches builds a strong stable spine.'},
-    {n:'Sit-to-Stand Practice',s:'5 reps × 2',b:'Goal',t:'Sit cross-legged on mat. Stand using as little hand support as possible. Work toward zero hands. This is considered one of the best predictors of longevity — studies show people who can do it without hands live significantly longer. Track your progress: 2 hands → 1 hand → fingertips → zero hands.'},
-    {n:'Single-leg Balance Hold',s:'3 × 30 sec each',b:'Balance',t:'Near a wall for safety. Progress: eyes open → eyes closed → stand on folded towel.'},
+  {title:'Thu',dayOfWeek:'Thu',name:'Lower Body B',focus:'Hips & hamstrings',loggable:true,cardio:true,
+   warmup:'5 min easy cardio + glute bridges & leg swings',recovery:RECOVERY_LIFT,
+   exs:[
+    {n:'Hack Squat (or Leg Press, feet high)',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Feet higher/forward on the platform to bias hamstrings & glutes. Same depth and control as Leg Press.'},
+    {n:'Lying / Seated Leg Curl',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Same cue as Monday — hold at contraction, lower slow.'},
+    {n:'Glute / Hip Thrust Machine',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Drive through your heels, squeeze glutes hard at the top. Don\'t hyperextend your lower back.'},
+    {n:'Leg Extension (lighter)',sets:2,repsMin:15,repsMax:15,b:'Finisher',t:'Lighter than Monday — this is a pump finisher, not a strength set.'},
+    {n:'Calf Raise (machine)',sets:3,repsMin:15,repsMax:20,b:'Finisher',t:'Same as Monday — full range, pause at the top.'},
   ]},
-  {title:'Schedule',sub:'Full week view',cardio:false,exs:[
-    {n:'Monday — Day 1',s:'~55 min',b:'Gym',t:'Lifting (~45 min) + 10–15 min treadmill after. Muscles are glycogen-depleted post-lift so your body burns fat faster.'},
-    {n:'Tuesday — Stretch + Walk',s:'~50 min',b:'Rest',t:'20 min flexibility routine + Japanese interval walk. Active recovery without taxing your muscles.'},
-    {n:'Wednesday — Day 2',s:'~55 min',b:'Gym',t:'Same as Monday — finish with 10–15 min treadmill for visceral fat reduction.'},
-    {n:'Thursday — Stretch + Walk',s:'~50 min',b:'Rest',t:'Same as Tuesday. Consistency on rest days separates people who see results from those who don\'t.'},
-    {n:'Friday — Day 3',s:'~55 min',b:'Gym',t:'Finish with 10–15 min treadmill. Heavier compound work today — this is where real strength happens.'},
-    {n:'Saturday + Sunday',s:'Full rest',b:'Rest',t:'Sleep, eat well, hydrate. This is when the actual muscle building and adaptation takes place.'},
+  {title:'Fri',dayOfWeek:'Fri',name:'Upper Body B',focus:'Pull',loggable:true,cardio:true,
+   warmup:'5 min easy cardio + band pull-aparts & light lat pulldowns',recovery:RECOVERY_LIFT,
+   exs:[
+    {n:'Lat Pulldown',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Pull to upper chest — never behind neck. Lean slightly back, squeeze shoulder blades.'},
+    {n:'Seated Row Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Pull to your belly button. Elbows to back pockets — don\'t round your back.'},
+    {n:'Reverse Pec Deck (rear delts)',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Arms nearly straight, squeeze shoulder blades together at the back.'},
+    {n:'Biceps Curl (machine/cable)',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Full range. Don\'t let the stack touch between reps — keep tension on the whole time.'},
+    {n:'Face Pull (cable)',sets:2,repsMin:15,repsMax:15,b:'Finisher',t:'Pull to eye level, elbows high. Great for posture — don\'t rush this one.'},
+  ]},
+  {title:'Weekend',dayOfWeek:'Sat/Sun',name:'Weekend',focus:'Cardio & rest',loggable:false,cardio:false,
+   recovery:RECOVERY_OFF,
+   exs:[
+    {n:'Saturday — Longer Walk',s:'4–5 mi',b:'Gym',t:'Optional sauna or cold plunge afterward. This is your bigger cardio day of the week.'},
+    {n:'Sunday — Rest',s:'Full rest',b:'Rest',t:'Full rest or a gentle walk. Sleep, eat well, hydrate — this is when the muscle-building adaptation actually happens.'},
   ]},
 ];
+const PROGRAM_META={name:'Machines, Miles & Recovery',goal:'Fat loss with muscle preservation (recomposition)'};
 
-let curDay=0;
+function fmtSets(ex){
+  const range=ex.repsMin===ex.repsMax?`${ex.repsMax}`:`${ex.repsMin}–${ex.repsMax}`;
+  const unit=ex.unit==='seconds'?' sec':'';
+  return `${ex.sets} × ${range}${unit}${ex.perSide?' /side':''}`;
+}
+function todayPlanIndex(){
+  const map={1:0,2:1,3:2,4:3,5:4,6:5,0:5};
+  return map[new Date().getDay()];
+}
+let curDay=todayPlanIndex();
 (function initPlan(){
   const tabs=document.getElementById('dtabs');
   PLAN.forEach((d,i)=>{
     const el=document.createElement('div');
-    el.className='dt'+(i===0?' active':'');
+    el.className='dt'+(i===curDay?' active':'');
     el.textContent=d.title;
     el.onclick=()=>{curDay=i;document.querySelectorAll('.dt').forEach(t=>t.classList.remove('active'));el.classList.add('active');inlineOpen=null;renderPlan();};
     tabs.appendChild(el);
   });
 })();
 
+function progressionHit(exName,repsMax){
+  const entries=gymLog.filter(g=>g.machine===exName);
+  if(!entries.length)return false;
+  const last=entries[0];
+  return last.sets.length>0&&last.sets.every(s=>s.reps>=repsMax);
+}
 function renderPlan(){
   const d=PLAN[curDay];
-  const isSchedule=curDay===4;
   const bc=b=>b==='Primary'||b==='Gym'?'badge bg':b==='Heavy'||b==='Goal'?'badge bgo':b==='Balance'?'badge bpu':'badge';
 
-  let html='<div class="slabel">'+d.sub+'</div>';
+  let html=`<div class="slabel">${d.name} — ${d.focus} · ${d.dayOfWeek}</div>`;
+  if(d.warmup)html+=`<div class="warmup-line">🔥 Warm-up: ${d.warmup}</div>`;
 
   // Post-workout cardio reminder card for gym days
   if(d.cardio){
     html+=`<div class="cardio-box">
       <div class="cardio-title">🏃 POST-WORKOUT CARDIO — VISCERAL FAT</div>
       <div class="cardio-text">After lifting, do 10–15 min on the treadmill at a brisk pace. Your muscles are glycogen-depleted so your body goes straight to burning fat stores. This is one of the most effective times to do cardio for visceral fat reduction.</div>
+    </div>`;
+  }
+  if(d.recovery){
+    html+=`<div class="recovery-note">
+      <div class="recovery-note-title">SAUNA / COLD PLUNGE</div>
+      <div class="recovery-note-text">${d.recovery}</div>
     </div>`;
   }
 
@@ -474,6 +579,8 @@ function renderPlan(){
     const isLogged=sets.length>0;
     const isOpen=inlineOpen===key;
     const lw=getLW(e.n);
+    const setsLabel=d.loggable?fmtSets(e):e.s;
+    const hitTop=d.loggable&&e.repsMax!==undefined?progressionHit(e.n,e.repsMax):false;
 
     let loggedSum=isLogged?`<div class="pcard-logged-sum">${sets.length} set${sets.length>1?'s':''} logged</div>`:'';
 
@@ -481,21 +588,25 @@ function renderPlan(){
     if(sets.length){
       const vol=sets.reduce((a,s)=>a+s.weight*s.reps,0);
       const last=sets[sets.length-1];
+      const unitLabel=e.unit==='seconds'?'sec':'reps';
       setsHTML=`<div class="ilog-sets">`+
-        sets.map((s,si)=>`<div class="ilog-si"><div class="ilog-sn">${si+1}</div><div style="flex:1">${s.weight} lbs × ${s.reps} reps</div><button class="ilog-del" onclick="removeISet('${key}',${si})">×</button></div>`).join('')+
+        sets.map((s,si)=>`<div class="ilog-si"><div class="ilog-sn">${si+1}</div><div style="flex:1">${s.weight} lbs × ${s.reps} ${unitLabel}</div><button class="ilog-del" onclick="removeISet('${key}',${si})">×</button></div>`).join('')+
         `<div class="vrow" style="margin-top:8px;padding-top:8px;">VOLUME <span style="color:var(--gold)">${vol.toLocaleString()} lbs</span></div>
         <button class="ilog-add" onclick="repeatISet('${key}',${i})" style="width:100%;margin-top:8px;">↻ REPEAT (${last.weight} lbs × ${last.reps})</button>
         </div>`;
     }
 
-    const lhintHTML=lw!==null?`<div class="ilog-lhint">↑ Last session: ${lw} lbs</div>`:'';
+    const suggestedW=hitTop&&lw!==null?lw+5:lw;
+    const lhintHTML=hitTop&&lw!==null
+      ? `<div class="ilog-lhint" style="color:#ff9a3c88;">↑ Try ${suggestedW} lbs — you hit ${e.repsMax} ${e.unit==='seconds'?'sec':'reps'} on every set last time.</div>`
+      : lw!==null?`<div class="ilog-lhint">↑ Last session: ${lw} lbs</div>`:'';
 
-    const ilogHTML=isSchedule?'':`
+    const ilogHTML=!d.loggable?'':`
       <div class="ilog">
         ${lhintHTML}
         <div class="ilog-inputs">
-          <input type="number" inputmode="decimal" min="0" placeholder="Weight (lbs)" id="iw-${i}" ${lw!==null?`value="${lw}"`:''}>
-          <input type="number" inputmode="numeric" min="0" placeholder="Reps" id="ir-${i}">
+          <input type="number" inputmode="decimal" min="0" placeholder="Weight (lbs)" id="iw-${i}" ${suggestedW!==null?`value="${suggestedW}"`:''}>
+          <input type="number" inputmode="numeric" min="0" placeholder="${e.unit==='seconds'?'Seconds':'Reps'}" id="ir-${i}">
         </div>
         <div class="ilog-btns">
           <button class="ilog-add" onclick="addISet('${key}',${i})">+ ADD SET</button>
@@ -508,11 +619,11 @@ function renderPlan(){
       <div class="pcard-head" onclick="toggleCard('${key}',${i})">
         <div class="pcard-left">
           <div class="pex-name">${e.n}</div>
-          <div class="pex-sets"><span class="${bc(e.b)}">${e.s}</span></div>
+          <div class="pex-sets"><span class="${bc(e.b)}">${setsLabel}</span>${hitTop?' <span class="badge badge-up">↑ ADD WEIGHT</span>':''}</div>
         </div>
         <div class="pcard-right">
           ${loggedSum}
-          ${isSchedule?'':`<div class="expand-arrow">▼</div>`}
+          ${!d.loggable?'':`<div class="expand-arrow">▼</div>`}
         </div>
       </div>
       <div class="pcard-tip">${e.t}</div>
@@ -657,19 +768,83 @@ function renderWalkHist(){
 }
 renderWalkHist();
 
+// ── BODY COMPOSITION ─────────────────────────────────────────────────
+function sortBody(){bodyLog.sort((a,b)=>b.ts-a.ts);}
+function saveBody(){
+  const w=parseFloat(document.getElementById('b-weight').value);
+  const bf=parseFloat(document.getElementById('b-bf').value);
+  const waistRaw=document.getElementById('b-waist').value;
+  const waist=waistRaw!==''?parseFloat(waistRaw):null;
+  const dateVal=document.getElementById('b-date').value;
+  if(!w||!bf){alert('Enter weight and body fat % first.');return;}
+  const d=dateVal?new Date(dateVal+'T12:00:00'):new Date();
+  bodyLog.push({id:Date.now(),ts:d.getTime(),date:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),weightLb:w,bodyFatPct:bf,waistIn:waist});
+  sortBody();
+  LS.set('il4_body',bodyLog);
+  document.getElementById('b-weight').value='';document.getElementById('b-bf').value='';document.getElementById('b-waist').value='';document.getElementById('b-date').value='';
+  renderBody();toast('✓ CHECK-IN SAVED');
+}
+function delBody(id){bodyLog=bodyLog.filter(e=>e.id!==id);LS.set('il4_body',bodyLog);renderBody();}
+function sparkline(data,color){
+  if(data.length<2)return '<div style="font-size:12px;color:var(--mut);padding:16px 0;text-align:center;">Log at least 2 check-ins to see a trend</div>';
+  const w=280,h=54,pad=4;
+  const min=Math.min(...data),max=Math.max(...data),range=(max-min)||1;
+  const pts=data.map((v,i)=>{
+    const x=pad+i*(w-2*pad)/(data.length-1);
+    const y=h-pad-((v-min)/range)*(h-2*pad);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:${h}px;display:block;" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/></svg>`;
+}
+function bprogRow(label,current,baseline,target,unit){
+  const pct=Math.max(0,Math.min(100,Math.round(((baseline-current)/(baseline-target))*100)));
+  return `<div class="bprog-row">
+    <div class="bprog-top"><span>${label}</span><span>${pct}%</span></div>
+    <div class="bprog-bar"><div class="bprog-fill" style="width:${pct}%"></div></div>
+    <div class="bprog-bot"><span>Now: ${current}${unit}</span><span>Target: ${target}${unit}</span></div>
+  </div>`;
+}
+function renderBody(){
+  sortBody();
+  const dEl=document.getElementById('b-date');
+  if(dEl&&!dEl.value)dEl.value=new Date().toISOString().slice(0,10);
+  const cur=bodyLog[0];
+  document.getElementById('bfw').textContent=cur.weightLb;
+  document.getElementById('bfb').textContent=cur.bodyFatPct+'%';
+  document.getElementById('bfl').textContent=Math.round(cur.weightLb*(1-cur.bodyFatPct/100));
+
+  document.getElementById('bprog').innerHTML=
+    bprogRow('MILESTONE — 28% BF',cur.bodyFatPct,BODY_TARGETS.baselineBF,BODY_TARGETS.milestoneBF,'%')+
+    bprogRow('GOAL — 22% BF',cur.bodyFatPct,BODY_TARGETS.baselineBF,BODY_TARGETS.goalBF,'%');
+
+  const chron=[...bodyLog].reverse();
+  const weights=chron.map(e=>e.weightLb),bfs=chron.map(e=>e.bodyFatPct);
+  document.getElementById('btrend').innerHTML=`
+    <div class="spark-label">WEIGHT (lbs)</div>
+    ${sparkline(weights,'#e8c840')}
+    <div class="spark-range">${chron[0].weightLb} → <b>${cur.weightLb}</b> lbs</div>
+    <div class="spark-label" style="margin-top:14px;">BODY FAT %</div>
+    ${sparkline(bfs,'#4aa8d8')}
+    <div class="spark-range">${chron[0].bodyFatPct}% → <b>${cur.bodyFatPct}%</b></div>`;
+
+  const el=document.getElementById('bhist');
+  el.innerHTML=bodyLog.map(e=>`<div class="hcard"><div class="hcrow"><div class="hctitle">Check-In${e.baseline?' <span style="font-size:11px;color:var(--mut);font-family:\'DM Mono\',monospace;letter-spacing:1px;">(baseline)</span>':''}</div><button class="delbtn" onclick="delBody(${e.id})">🗑</button></div><div class="chips"><div class="chip"><span class="chipw">${e.weightLb}</span> lb</div><div class="chip"><span class="chipw">${e.bodyFatPct}%</span> bf</div>${e.waistIn?`<div class="chip"><span class="chipw">${e.waistIn}</span> in waist</div>`:''}</div><div style="font-size:10px;color:var(--mut);margin-top:7px;">${e.date}</div></div>`).join('');
+}
+
 // ── HISTORY ───────────────────────────────────────────────────────────
 function renderHist(){
   updH();
   document.getElementById('hg').textContent=gymLog.length;
   document.getElementById('hst').textContent=strLog.length;
   document.getElementById('hw').textContent=walkLog.length;
+  document.getElementById('hbc').textContent=bodyLog.length;
   const el=document.getElementById('hbody');
-  if(!gymLog.length&&!walkLog.length&&!strLog.length){
+  if(!gymLog.length&&!walkLog.length&&!strLog.length&&!bodyLog.length){
     el.innerHTML='<div class="empty"><div style="font-size:36px;margin-bottom:8px">📈</div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:20px;letter-spacing:3px;margin-bottom:5px">NO ACTIVITY YET</div><div style="font-size:11px">Your logged workouts appear here</div></div>';return;
   }
   const grouped={};
   const ag=(e,t)=>{if(!grouped[e.date])grouped[e.date]=[];grouped[e.date].push({type:t,...e});};
-  gymLog.forEach(e=>ag(e,'gym'));walkLog.forEach(e=>ag(e,'walk'));strLog.forEach(e=>ag(e,'stretch'));
+  gymLog.forEach(e=>ag(e,'gym'));walkLog.forEach(e=>ag(e,'walk'));strLog.forEach(e=>ag(e,'stretch'));bodyLog.forEach(e=>ag(e,'body'));
   el.innerHTML=Object.entries(grouped).map(([date,entries])=>
     `<div class="dg"><div class="dh">${date}</div>`+
     entries.map(e=>{
@@ -678,6 +853,8 @@ function renderHist(){
         return `<div class="hcard"><div class="hcrow"><div class="hctitle">${e.machine}</div><div style="display:flex;gap:5px;align-items:center;"><span class="badge">${e.sets.length} SETS</span><button class="delbtn" onclick="delG(${e.id})">🗑</button></div></div><div class="chips">${e.sets.map(s=>`<div class="chip"><span class="chipw">${s.weight}lb</span><span class="chipx">×</span>${s.reps}r</div>`).join('')}</div><div style="font-size:10px;color:var(--mut);margin-top:7px;">Volume: ${vol.toLocaleString()} lbs</div></div>`;
       }else if(e.type==='walk'){
         return `<div class="hcard"><div class="hcrow"><div class="hctitle">Interval Walk</div><div style="display:flex;gap:5px;"><span class="badge bg">${e.intervals} INTERVALS</span>${e.cardio?'<span class="badge" style="background:#0a1a0f;color:#5a9a6a;border-color:#1a4a2a;">+CARDIO</span>':''}</div></div><div style="font-size:11px;color:var(--mut);margin-top:3px;">~${e.minutes} min total</div></div>`;
+      }else if(e.type==='body'){
+        return `<div class="hcard"><div class="hcrow"><div class="hctitle">Check-In</div><button class="delbtn" onclick="delBody(${e.id})">🗑</button></div><div class="chips"><div class="chip"><span class="chipw">${e.weightLb}</span> lb</div><div class="chip"><span class="chipw">${e.bodyFatPct}%</span> bf</div>${e.waistIn?`<div class="chip"><span class="chipw">${e.waistIn}</span> in waist</div>`:''}</div></div>`;
       }else{
         return `<div class="hcard"><div class="hcrow"><div class="hctitle">Stretch Routine</div><div class="badge bg">COMPLETE</div></div><div style="font-size:11px;color:var(--mut);margin-top:3px;">Full 20-min session</div></div>`;
       }
