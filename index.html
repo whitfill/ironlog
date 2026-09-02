@@ -178,7 +178,7 @@ select.field option{background:#1a1a1a;}
 <div id="app">
   <div id="hdr">
     <div class="hrow">
-      <div><div class="logo">IRON LOG</div><div class="logo-sub">PLANET FITNESS TRACKER</div></div>
+      <div><div class="logo">IRON LOG</div><div class="logo-sub">CLUB4 FITNESS TRACKER</div></div>
       <div class="hmeta"><span id="hdate"></span><br><span id="hcount">0 activities</span></div>
     </div>
   </div>
@@ -255,7 +255,7 @@ select.field option{background:#1a1a1a;}
     <div id="pane-plan" class="pane">
       <div class="obox">
         <div class="ot">AT THE GYM — HOW TO USE THIS TAB</div>
-        <div class="od">Tap any exercise to expand it. Log your sets right there — no tab switching. Green border = logged. Hit the top of your rep range on every set? We'll flag it <span style="color:#ff9a3c">↑ ADD WEIGHT</span> — bump one increment and drop back to the bottom of the range next time.</div>
+        <div class="od">Tap any exercise to expand it. Log your sets right there — no tab switching. Green border = logged. Hit the top of your rep range on every set? We'll flag it <span style="color:#ff9a3c">↑ ADD WEIGHT</span> — bump one increment and drop back to the bottom of the range next time. Don't recognize a machine? Expand it — there's a "WHAT IT IS" line. Note: some Club4 machines (especially Hammer Strength) are plate-loaded — you add weight plates yourself instead of picking a pin on a stack. Same exercise, different loading.</div>
       </div>
       <div class="dts" id="dtabs"></div>
       <div id="planbody"></div>
@@ -475,20 +475,20 @@ const PLAN=[
   {title:'Mon',dayOfWeek:'Mon',name:'Lower Body A',focus:'Quads',loggable:true,cardio:true,
    warmup:'5 min easy bike/elliptical + bodyweight squats & leg swings',recovery:RECOVERY_LIFT,
    exs:[
-    {n:'Leg Press',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Feet shoulder-width, midway on the plate. Lower to a 90° knee bend, push through heels. Don\'t lock knees at top.'},
-    {n:'Leg Extension',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Squeeze 1 sec at top, lower slowly. Keep your back against the pad the whole rep.'},
-    {n:'Seated Leg Curl',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Hold 1 sec at full contraction. Control the release — don\'t let the stack drop.'},
-    {n:'Calf Raise (machine)',sets:3,repsMin:15,repsMax:20,b:'Finisher',t:'Full range — stretch at the bottom, rise all the way up on your toes. Pause at the top.'},
-    {n:'Hip Abductor / Adductor',sets:2,repsMin:15,repsMax:15,b:'Finisher',t:'Slow and controlled both directions. Moderate weight — this is about hip stability, not max load.'},
+    {n:'Leg Press',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated/reclined machine — you push a weighted platform away with your feet.',t:'Feet shoulder-width, midway on the plate. Lower to a 90° knee bend, push through heels. Don\'t lock knees at top.'},
+    {n:'Leg Extension',sets:3,repsMin:12,repsMax:15,b:'Primary',what:'Seated machine, pad rests on top of your shins — you lift it by straightening your legs. Works the front of your thigh (quads).',t:'Squeeze 1 sec at top, lower slowly. Keep your back against the pad the whole rep.'},
+    {n:'Seated Leg Curl',sets:3,repsMin:12,repsMax:15,b:'Primary',what:'Seated machine, pad rests behind your ankles — you curl it down and back. Works the back of your thigh (hamstrings).',t:'Hold 1 sec at full contraction. Control the release — don\'t let the stack drop.'},
+    {n:'Calf Raise (machine)',sets:3,repsMin:15,repsMax:20,b:'Finisher',what:'Standing or seated machine — you push up onto your toes against resistance on your shoulders or knees.',t:'Full range — stretch at the bottom, rise all the way up on your toes. Pause at the top.'},
+    {n:'Hip Abductor / Adductor',sets:2,repsMin:15,repsMax:15,b:'Finisher',what:'Usually one machine with two settings: "abductor" pushes your knees outward (outer hip), "adductor" pushes them inward (inner thigh).',t:'Slow and controlled both directions. Moderate weight — this is about hip stability, not max load.'},
   ]},
   {title:'Tue',dayOfWeek:'Tue',name:'Upper Body A',focus:'Push',loggable:true,cardio:true,
    warmup:'5 min easy cardio + arm circles & band pull-aparts',recovery:RECOVERY_LIFT,
    exs:[
-    {n:'Chest Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Handles at mid-chest. Press straight out, don\'t lock elbows. 3-second return.'},
-    {n:'Shoulder Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Don\'t shrug shoulders up. Press 2 sec up, lower 3 sec — stop just short of lockout.'},
-    {n:'Pec Deck / Cable Fly',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Elbows slightly bent throughout. Feel the stretch wide, squeeze narrow. Lighter weight.'},
-    {n:'Triceps Pushdown',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Elbows pinned to your sides. Full extension at the bottom, controlled return.'},
-    {n:'Lateral Raise (machine/cable)',sets:2,repsMin:12,repsMax:15,b:'Finisher',t:'Lead with your elbows, not your hands. Stop at shoulder height — no swinging.'},
+    {n:'Chest Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated machine — push handles forward away from your chest, like a machine-guided bench press. May be plate-loaded (Hammer Strength) or a weight stack (Life Fitness).',t:'Handles at mid-chest. Press straight out, don\'t lock elbows. 3-second return.'},
+    {n:'Shoulder Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated machine — push handles straight up overhead.',t:'Don\'t shrug shoulders up. Press 2 sec up, lower 3 sec — stop just short of lockout.'},
+    {n:'Pec Deck / Cable Fly',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Seated machine with arm pads in front of you — bring your arms together like a hug. If your gym only has a cable crossover station, do standing cable flys instead.',t:'Elbows slightly bent throughout. Feel the stretch wide, squeeze narrow. Lighter weight.'},
+    {n:'Triceps Pushdown',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Cable station, high pulley — push a bar or rope straight down. Back of the upper arm.',t:'Elbows pinned to your sides. Full extension at the bottom, controlled return.'},
+    {n:'Lateral Raise (machine/cable)',sets:2,repsMin:12,repsMax:15,b:'Finisher',what:'Machine or cable — raise your arms out to the sides to shoulder height. Side of the shoulder.',t:'Lead with your elbows, not your hands. Stop at shoulder height — no swinging.'},
   ]},
   {title:'Wed',dayOfWeek:'Wed',name:'Balance, Mobility & Core',focus:'Active recovery',loggable:true,cardio:false,
    warmup:'No heavy lifting today — this is a mobility & core day',recovery:RECOVERY_OFF,
@@ -496,25 +496,25 @@ const PLAN=[
     {n:'Plank',sets:3,repsMin:30,repsMax:45,unit:'seconds',b:'Core',t:'Straight line head to heels. Squeeze glutes and brace your abs — don\'t let your hips sag.'},
     {n:'Dead Bug',sets:3,repsMin:10,repsMax:10,perSide:true,b:'Core',t:'Lower back pressed flat to the floor the whole time. Slow opposite arm/leg extensions.'},
     {n:'Bird Dog',sets:3,repsMin:10,repsMax:10,perSide:true,b:'Core',t:'Extend opposite arm and leg, hold 2 sec. Keep hips square — don\'t rotate.'},
-    {n:'Pallof Press (cable)',sets:3,repsMin:12,repsMax:12,perSide:true,b:'Core',t:'Press straight out and resist the cable\'s pull to rotate you — that resistance IS the exercise.'},
+    {n:'Pallof Press (cable)',sets:3,repsMin:12,repsMax:12,perSide:true,b:'Core',what:'Stand sideways to a cable station set at chest height, holding the handle with both hands at your chest.',t:'Press straight out and resist the cable\'s pull to rotate you — that resistance IS the exercise.'},
   ]},
   {title:'Thu',dayOfWeek:'Thu',name:'Lower Body B',focus:'Hips & hamstrings',loggable:true,cardio:true,
    warmup:'5 min easy cardio + glute bridges & leg swings',recovery:RECOVERY_LIFT,
    exs:[
-    {n:'Hack Squat (or Leg Press, feet high)',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Feet higher/forward on the platform to bias hamstrings & glutes. Same depth and control as Leg Press.'},
-    {n:'Lying / Seated Leg Curl',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Same cue as Monday — hold at contraction, lower slow.'},
-    {n:'Glute / Hip Thrust Machine',sets:3,repsMin:12,repsMax:15,b:'Primary',t:'Drive through your heels, squeeze glutes hard at the top. Don\'t hyperextend your lower back.'},
-    {n:'Leg Extension (lighter)',sets:2,repsMin:15,repsMax:15,b:'Finisher',t:'Lighter than Monday — this is a pump finisher, not a strength set.'},
-    {n:'Calf Raise (machine)',sets:3,repsMin:15,repsMax:20,b:'Finisher',t:'Same as Monday — full range, pause at the top.'},
+    {n:'Hack Squat',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Angled sled machine — you squat inside it with pads on your shoulders, feet on a platform below you. If your location doesn\'t have one, use the Leg Press with feet set higher/further up the platform instead.',t:'Feet mid-to-high on the platform to bias hamstrings & glutes. Same depth and control as Leg Press.'},
+    {n:'Lying / Seated Leg Curl',sets:3,repsMin:12,repsMax:15,b:'Primary',what:'Same movement as Monday\'s leg curl — lying face-down or seated, curl the pad toward your glutes.',t:'Same cue as Monday — hold at contraction, lower slow.'},
+    {n:'Glute / Hip Thrust Machine',sets:3,repsMin:12,repsMax:15,b:'Primary',what:'Seated or bench-supported machine — you drive your hips upward against resistance, squeezing your glutes at the top.',t:'Drive through your heels, squeeze glutes hard at the top. Don\'t hyperextend your lower back.'},
+    {n:'Leg Extension (lighter)',sets:2,repsMin:15,repsMax:15,b:'Finisher',what:'Same machine as Monday, lighter weight — lift the pad by straightening your legs.',t:'Lighter than Monday — this is a pump finisher, not a strength set.'},
+    {n:'Calf Raise (machine)',sets:3,repsMin:15,repsMax:20,b:'Finisher',what:'Same as Monday — standing or seated, push up onto your toes.',t:'Same as Monday — full range, pause at the top.'},
   ]},
   {title:'Fri',dayOfWeek:'Fri',name:'Upper Body B',focus:'Pull',loggable:true,cardio:true,
    warmup:'5 min easy cardio + band pull-aparts & light lat pulldowns',recovery:RECOVERY_LIFT,
    exs:[
-    {n:'Lat Pulldown',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Pull to upper chest — never behind neck. Lean slightly back, squeeze shoulder blades.'},
-    {n:'Seated Row Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',t:'Pull to your belly button. Elbows to back pockets — don\'t round your back.'},
-    {n:'Reverse Pec Deck (rear delts)',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Arms nearly straight, squeeze shoulder blades together at the back.'},
-    {n:'Biceps Curl (machine/cable)',sets:3,repsMin:12,repsMax:15,b:'Finisher',t:'Full range. Don\'t let the stack touch between reps — keep tension on the whole time.'},
-    {n:'Face Pull (cable)',sets:2,repsMin:15,repsMax:15,b:'Finisher',t:'Pull to eye level, elbows high. Great for posture — don\'t rush this one.'},
+    {n:'Lat Pulldown',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated, cable overhead — pull a bar down to your upper chest. An assisted pull-up, basically.',t:'Pull to upper chest — never behind neck. Lean slightly back, squeeze shoulder blades.'},
+    {n:'Seated Row Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated, chest often against a pad — pull handles into your torso, squeezing your shoulder blades together. Like rowing a boat.',t:'Pull to your belly button. Elbows to back pockets — don\'t round your back.'},
+    {n:'Reverse Pec Deck (rear delts)',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Same Pec Deck machine as Tuesday, but you face into it and push the pads backward/apart — the opposite motion. Works rear shoulders/upper back.',t:'Arms nearly straight, squeeze shoulder blades together at the back.'},
+    {n:'Biceps Curl (machine/cable)',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Seated machine or cable station — curl the weight up toward your shoulder.',t:'Full range. Don\'t let the stack touch between reps — keep tension on the whole time.'},
+    {n:'Face Pull (cable)',sets:2,repsMin:15,repsMax:15,b:'Finisher',what:'Cable set at face height with a rope attachment — pull the rope toward your face with your elbows up high.',t:'Pull to eye level, elbows high. Great for posture — don\'t rush this one.'},
   ]},
   {title:'Weekend',dayOfWeek:'Sat/Sun',name:'Weekend',focus:'Cardio & rest',loggable:false,cardio:false,
    recovery:RECOVERY_OFF,
@@ -626,7 +626,7 @@ function renderPlan(){
           ${!d.loggable?'':`<div class="expand-arrow">▼</div>`}
         </div>
       </div>
-      <div class="pcard-tip">${e.t}</div>
+      <div class="pcard-tip">${e.what?`<div style="color:#999;margin-bottom:8px;"><span style="color:var(--blue);letter-spacing:1px;font-size:11px;">WHAT IT IS — </span>${e.what}</div>`:''}${e.t}</div>
       ${ilogHTML}
     </div>`;
   }).join('');
