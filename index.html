@@ -61,6 +61,10 @@ select.field option{background:#1a1a1a;}
 .cardio-text{font-size:13px;color:#5a9a6a;line-height:1.65;}
 /* Plan */
 .dts{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.plan-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12px;color:var(--mut);}
+.hide-done-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+.hide-done-toggle input{width:15px;height:15px;accent-color:var(--gold);}
+.plan-progress{color:var(--gold);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
 .dt{padding:8px 13px;border:1px solid var(--dim);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--mut);cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .dt.active{border-color:var(--gold);color:var(--gold);}
 .obox{background:#1a1500;border:1px solid #3a2e00;padding:12px 13px;margin-bottom:12px;}
@@ -70,6 +74,11 @@ select.field option{background:#1a1a1a;}
 .pcard-head{padding:14px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
 .pcard-head:active{background:#1a1a1a;}
 .pcard.logged .pcard-head{border-left:3px solid var(--green);}
+.pcard.partial .pcard-head{border-left:3px solid var(--blue);}
+.pcard.complete{opacity:.72;}
+.pcard.complete .pcard-head{border-left:3px solid var(--gold);}
+.pcard-done-badge{font-size:12px;color:var(--gold);text-align:right;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+.pcard-partial-badge{font-size:12px;color:var(--blue);text-align:right;}
 .pcard.cardio-card .pcard-head{border-left:3px solid #1D9E75;}
 .pcard-left{flex:1;}
 .pex-name{font-size:17px;font-weight:500;margin-bottom:3px;}
@@ -144,7 +153,7 @@ select.field option{background:#1a1a1a;}
 .chipw{color:var(--gold);}.chipx{color:var(--mut);margin:0 2px;}
 .delbtn{background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:1px 4px;}.delbtn:active{color:#f44;}
 .empty{text-align:center;padding:50px 20px;color:var(--mut);}
-#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--gold);color:#0a0a0a;padding:8px 22px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;transition:transform .3s;z-index:99;pointer-events:none;}
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--gold);color:#0a0a0a;padding:8px 22px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;transition:transform .3s;z-index:99;pointer-events:none;max-width:88vw;white-space:normal;text-align:center;}
 #toast.show{transform:translateX(-50%) translateY(0);}
 /* 6-tab nav */
 .nb{padding:8px 1px 6px;}
@@ -255,9 +264,13 @@ select.field option{background:#1a1a1a;}
     <div id="pane-plan" class="pane">
       <div class="obox">
         <div class="ot">AT THE GYM — HOW TO USE THIS TAB</div>
-        <div class="od">Tap any exercise to expand it. Log your sets right there — no tab switching. Green border = logged. Hit the top of your rep range on every set? We'll flag it <span style="color:#ff9a3c">↑ ADD WEIGHT</span> — bump one increment and drop back to the bottom of the range next time. Don't recognize a machine? Expand it — there's a "WHAT IT IS" line. Note: some Club4 machines (especially Hammer Strength) are plate-loaded — you add weight plates yourself instead of picking a pin on a stack. Same exercise, different loading.</div>
+        <div class="od">Tap any exercise to expand it. Log your sets right there — no tab switching. Blue border = some sets done today, green = sets queued but not saved yet, gold + ✓ DONE = you've hit today's target for that machine. Hit the top of your rep range on every set? We'll flag it <span style="color:#ff9a3c">↑ ADD WEIGHT</span> — bump one increment and drop back to the bottom of the range next time. Don't recognize a machine? Expand it — there's a "WHAT IT IS" line. Note: some Club4 machines (especially Hammer Strength) are plate-loaded — you add weight plates yourself instead of picking a pin on a stack. Same exercise, different loading.</div>
       </div>
       <div class="dts" id="dtabs"></div>
+      <div class="plan-toolbar">
+        <label class="hide-done-toggle"><input type="checkbox" id="hideDoneChk" onchange="toggleHideDone()"> Hide completed machines</label>
+        <span class="plan-progress" id="planProgress"></span>
+      </div>
       <div id="planbody"></div>
     </div>
 
@@ -379,6 +392,7 @@ if(!bodyLog.length){
 const BODY_TARGETS={baselineBF:36.1,baselineLb:228.6,milestoneBF:28,milestoneLb:203,goalBF:22,goalLb:187};
 let inlineSets={};
 let inlineOpen=null;
+let hideDone=LS.get('il4_hideDone')||false;
 let selIntervals=5;
 let didCardio=true;
 
@@ -419,6 +433,12 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m||'✓
 let curSets=[];
 function getMN(){const s=document.getElementById('msel').value;return s==='__c'?document.getElementById('cname').value.trim():s;}
 function getLW(n){for(const e of gymLog)if(e.machine===n&&e.sets.length)return e.sets[e.sets.length-1].weight;return null;}
+function isToday(ts){return new Date(ts).toDateString()===new Date().toDateString();}
+// Sets already saved to the persisted log today for this machine — unlike
+// inlineSets (cleared the moment you hit SAVE), this survives a save, so
+// "done for today" stays visible instead of vanishing right when you finish.
+function doneSetsToday(machine){return gymLog.filter(g=>g.machine===machine&&isToday(g.ts)).reduce((a,g)=>a+g.sets.length,0);}
+function toggleHideDone(){hideDone=document.getElementById('hideDoneChk').checked;LS.set('il4_hideDone',hideDone);renderPlan();}
 function onMC(){
   const sel=document.getElementById('msel').value;
   document.getElementById('cwrap').style.display=sel==='__c'?'block':'none';
@@ -555,6 +575,10 @@ function progressionHit(exName,repsMax){
 function renderPlan(){
   const d=PLAN[curDay];
   const bc=b=>b==='Primary'||b==='Gym'?'badge bg':b==='Heavy'||b==='Goal'?'badge bgo':b==='Balance'?'badge bpu':'badge';
+  const hideChk=document.getElementById('hideDoneChk');
+  if(hideChk)hideChk.checked=hideDone;
+
+  let completeCount=0,loggableCount=0;
 
   let html=`<div class="slabel">${d.name} — ${d.focus} · ${d.dayOfWeek}</div>`;
   if(d.warmup)html+=`<div class="warmup-line">🔥 Warm-up: ${d.warmup}</div>`;
@@ -582,7 +606,23 @@ function renderPlan(){
     const setsLabel=d.loggable?fmtSets(e):e.s;
     const hitTop=d.loggable&&e.repsMax!==undefined?progressionHit(e.n,e.repsMax):false;
 
-    let loggedSum=isLogged?`<div class="pcard-logged-sum">${sets.length} set${sets.length>1?'s':''} logged</div>`:'';
+    // savedToday persists across a SAVE (unlike inlineSets, which is
+    // cleared the moment you save) — this is what makes "done" visible
+    // after you finish a machine instead of the indicator disappearing.
+    const savedToday=d.loggable?doneSetsToday(e.n):0;
+    const totalToday=savedToday+sets.length;
+    const isComplete=d.loggable&&e.sets!=null&&totalToday>=e.sets;
+    if(d.loggable){loggableCount++;if(isComplete)completeCount++;}
+
+    if(hideDone&&isComplete)return''; // collapsed out of the list entirely
+
+    let loggedSum=isComplete
+      ? `<div class="pcard-done-badge">✓ DONE (${totalToday}/${e.sets})</div>`
+      : isLogged
+        ? `<div class="pcard-logged-sum">${totalToday} of ${e.sets??sets.length} set${totalToday!==1?'s':''}</div>`
+        : savedToday>0
+          ? `<div class="pcard-partial-badge">${savedToday} of ${e.sets} sets done</div>`
+          : '';
 
     let setsHTML='';
     if(sets.length){
@@ -615,10 +655,11 @@ function renderPlan(){
         ${setsHTML}
       </div>`;
 
-    return `<div class="pcard${isLogged?' logged':''}${isOpen?' open':''}" id="pcard-${i}">
+    const stateClass=isComplete?' complete':isLogged?' logged':savedToday>0?' partial':'';
+    return `<div class="pcard${stateClass}${isOpen?' open':''}" id="pcard-${i}">
       <div class="pcard-head" onclick="toggleCard('${key}',${i})">
         <div class="pcard-left">
-          <div class="pex-name">${e.n}</div>
+          <div class="pex-name">${isComplete?'✓ ':''}${e.n}</div>
           <div class="pex-sets"><span class="${bc(e.b)}">${setsLabel}</span>${hitTop?' <span class="badge badge-up">↑ ADD WEIGHT</span>':''}</div>
         </div>
         <div class="pcard-right">
@@ -632,6 +673,8 @@ function renderPlan(){
   }).join('');
 
   document.getElementById('planbody').innerHTML=html;
+  const progressEl=document.getElementById('planProgress');
+  if(progressEl)progressEl.textContent=loggableCount?`${completeCount}/${loggableCount} DONE TODAY`:'';
 }
 
 function toggleCard(key,i){
@@ -654,11 +697,18 @@ function removeISet(key,idx){if(inlineSets[key])inlineSets[key].splice(idx,1);re
 function saveIEx(key){
   const sets=inlineSets[key];
   if(!sets||!sets.length)return;
-  const machineName=key.split('::')[1];
+  const [dayTitle,machineName]=key.split('::');
   saveToLog(machineName,[...sets]);
   delete inlineSets[key];
   updH();renderPlan();
-  toast('✓ '+machineName+' saved!');
+  const day=PLAN.find(p=>p.title===dayTitle);
+  const ex=day&&day.exs.find(x=>x.n===machineName);
+  const total=doneSetsToday(machineName);
+  if(ex&&ex.sets!=null&&total>=ex.sets){
+    toast('✓ '+machineName+' — DONE!');
+  }else{
+    toast('✓ '+machineName+' saved!');
+  }
 }
 function repeatISet(key,cardIdx){
   if(!inlineSets[key]||!inlineSets[key].length)return;
