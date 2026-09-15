@@ -308,8 +308,8 @@ select.field option{background:#1a1a1a;}
       </div>
 
       <div class="walk-log-box">
-        <div class="walk-log-title">LOG A COMPLETED WALK</div>
-        <div class="walk-note">When you get back from your walk, tap how many intervals you completed and hit Log Walk.</div>
+        <div class="walk-log-title">LOG A COMPLETED JAPANESE WALK</div>
+        <div class="walk-note">When you get back from your morning walk, tap how many intervals you completed and hit Log Walk.</div>
         <div class="walk-intervals" id="wint-btns">
           <div class="wint-btn" onclick="selInt(1)">1</div>
           <div class="wint-btn" onclick="selInt(2)">2</div>
@@ -318,12 +318,18 @@ select.field option{background:#1a1a1a;}
           <div class="wint-btn selected" onclick="selInt(5)">5 ✓</div>
         </div>
         <div style="font-size:9px;color:var(--mut);letter-spacing:1px;margin-bottom:8px;">INTERVALS COMPLETED</div>
-        <div class="slabel" style="margin-top:8px;">POST-GYM CARDIO?</div>
-        <div style="display:flex;gap:8px;margin-bottom:14px;">
-          <div class="wint-btn" id="cardio-no" onclick="selCardio(false)" style="flex:1">NO</div>
-          <div class="wint-btn selected" id="cardio-yes" onclick="selCardio(true)" style="flex:1">YES ✓</div>
-        </div>
         <button class="btn-green" onclick="logWalk()">LOG WALK</button>
+      </div>
+
+      <div class="walk-log-box">
+        <div class="walk-log-title">LOG POST-GYM CARDIO</div>
+        <div class="walk-note">Logged separately from your morning walk — this is the treadmill time after lifting.</div>
+        <div class="walk-intervals" id="cardio-min-btns">
+          <div class="wint-btn" data-min="10" onclick="selCardioMinutes(10)">10 min</div>
+          <div class="wint-btn selected" data-min="12" onclick="selCardioMinutes(12)">12 min</div>
+          <div class="wint-btn" data-min="15" onclick="selCardioMinutes(15)">15 min</div>
+        </div>
+        <button class="btn-green" onclick="logCardio()">LOG CARDIO</button>
       </div>
 
       <div class="slabel">WALK HISTORY</div>
@@ -394,7 +400,7 @@ let inlineSets={};
 let inlineOpen=null;
 let hideDone=LS.get('il4_hideDone')||false;
 let selIntervals=5;
-let didCardio=true;
+let cardioMinutes=12;
 
 document.getElementById('hdate').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 
@@ -506,7 +512,7 @@ const PLAN=[
    exs:[
     {n:'Chest Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated machine — push handles forward away from your chest, like a machine-guided bench press. May be plate-loaded (Hammer Strength) or a weight stack (Life Fitness).',t:'Handles at mid-chest. Press straight out, don\'t lock elbows. 3-second return.'},
     {n:'Shoulder Press Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated machine — push handles straight up overhead.',t:'Don\'t shrug shoulders up. Press 2 sec up, lower 3 sec — stop just short of lockout.'},
-    {n:'Pec Deck / Cable Fly',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Seated machine with arm pads in front of you — bring your arms together like a hug. If your gym only has a cable crossover station, do standing cable flys instead.',t:'Elbows slightly bent throughout. Feel the stretch wide, squeeze narrow. Lighter weight.'},
+    {n:'Pec Deck / Cable Fly',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Seated machine with arm pads in front of you — bring your arms together like a hug. At Club4 this is the Hammer Strength Pectoral Fly/Rear Deltoid machine, used in its forward-facing pec fly position. If your gym only has a cable crossover station instead, do standing cable flys.',t:'Elbows slightly bent throughout. Feel the stretch wide, squeeze narrow. Lighter weight.'},
     {n:'Triceps Pushdown',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Cable station, high pulley — push a bar or rope straight down. Back of the upper arm.',t:'Elbows pinned to your sides. Full extension at the bottom, controlled return.'},
     {n:'Lateral Raise (machine/cable)',sets:2,repsMin:12,repsMax:15,b:'Finisher',what:'Machine or cable — raise your arms out to the sides to shoulder height. Side of the shoulder.',t:'Lead with your elbows, not your hands. Stop at shoulder height — no swinging.'},
   ]},
@@ -532,7 +538,7 @@ const PLAN=[
    exs:[
     {n:'Lat Pulldown',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated, cable overhead — pull a bar down to your upper chest. An assisted pull-up, basically.',t:'Pull to upper chest — never behind neck. Lean slightly back, squeeze shoulder blades.'},
     {n:'Seated Row Machine',sets:3,repsMin:10,repsMax:12,b:'Primary',what:'Seated, chest often against a pad — pull handles into your torso, squeezing your shoulder blades together. Like rowing a boat.',t:'Pull to your belly button. Elbows to back pockets — don\'t round your back.'},
-    {n:'Reverse Pec Deck (rear delts)',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Same Pec Deck machine as Tuesday, but you face into it and push the pads backward/apart — the opposite motion. Works rear shoulders/upper back.',t:'Arms nearly straight, squeeze shoulder blades together at the back.'},
+    {n:'Reverse Pec Deck (rear delts)',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Same machine as Tuesday\'s Pec Deck — at Club4, the Hammer Strength Pectoral Fly/Rear Deltoid — but turn to face it and push the pads backward/apart instead of pulling them together. Works rear shoulders/upper back.',t:'Arms nearly straight, squeeze shoulder blades together at the back.'},
     {n:'Biceps Curl (machine/cable)',sets:3,repsMin:12,repsMax:15,b:'Finisher',what:'Seated machine or cable station — curl the weight up toward your shoulder.',t:'Full range. Don\'t let the stack touch between reps — keep tension on the whole time.'},
     {n:'Face Pull (cable)',sets:2,repsMin:15,repsMax:15,b:'Finisher',what:'Cable set at face height with a rope attachment — pull the rope toward your face with your elbows up high.',t:'Pull to eye level, elbows high. Great for posture — don\'t rush this one.'},
   ]},
@@ -789,32 +795,49 @@ function selInt(n){
     b.textContent=i===n-1?(n+' ✓'):(i+1)+'';
   });
 }
-function selCardio(val){
-  didCardio=val;
-  document.getElementById('cardio-yes').classList.toggle('selected',val);
-  document.getElementById('cardio-no').classList.toggle('selected',!val);
-  document.getElementById('cardio-yes').textContent=val?'YES ✓':'YES';
-  document.getElementById('cardio-no').textContent=!val?'NO ✓':'NO';
+function selCardioMinutes(n){
+  cardioMinutes=n;
+  document.querySelectorAll('#cardio-min-btns .wint-btn').forEach(b=>{
+    b.classList.toggle('selected',Number(b.dataset.min)===n);
+  });
 }
 function logWalk(){
-  const mins=(selIntervals*6)+(didCardio?12:0);
-  walkLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),intervals:selIntervals,cardio:didCardio,minutes:mins});
+  const mins=selIntervals*6;
+  walkLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),kind:'japanese',intervals:selIntervals,minutes:mins});
   LS.set('il4_walk',walkLog);
   renderWalkHist();updH();toast('WALK LOGGED!');
+}
+function logCardio(){
+  walkLog.unshift({id:Date.now(),ts:Date.now(),date:new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}),kind:'cardio',minutes:cardioMinutes});
+  LS.set('il4_walk',walkLog);
+  renderWalkHist();updH();toast('CARDIO LOGGED!');
+}
+// Shared between the WALK tab's own history list and the combined HISTORY
+// tab. Old entries (logged before the Japanese-walk/post-gym-cardio split)
+// have no `kind` and may carry a `cardio` bolt-on flag from when the two
+// were logged together — rendered as-is rather than reinterpreted, since
+// they really were one combined activity at the time.
+function walkEntryHTML(w){
+  const isCardio=w.kind==='cardio';
+  const title=isCardio?'Post-Gym Cardio':'Interval Walk';
+  const rightBadges=isCardio
+    ? `<span class="badge" style="background:#0a1a0f;color:#5a9a6a;border-color:#1a4a2a;">${w.minutes} MIN</span>`
+    : `<span class="badge bg">${w.intervals} INTERVALS</span>${w.cardio?'<span class="badge" style="background:#0a1a0f;color:#5a9a6a;border-color:#1a4a2a;">+CARDIO</span>':''}`;
+  return {title,rightBadges};
 }
 function renderWalkHist(){
   const el=document.getElementById('whist');
   if(!walkLog.length){el.innerHTML='<div class="empty" style="padding:24px 0"><div style="font-size:11px;color:var(--mut)">No walks logged yet</div></div>';return;}
-  el.innerHTML=walkLog.slice(0,10).map(w=>`<div class="hcard">
+  el.innerHTML=walkLog.slice(0,10).map(w=>{
+    const{title,rightBadges}=walkEntryHTML(w);
+    return `<div class="hcard">
     <div class="hcrow">
-      <div class="hctitle">Interval Walk</div>
-      <div style="display:flex;gap:5px;">
-        <span class="badge bg">${w.intervals} INTERVALS</span>
-        ${w.cardio?'<span class="badge" style="background:#0a1a0f;color:#5a9a6a;border-color:#1a4a2a;">+CARDIO</span>':''}
-      </div>
+      <div class="hctitle">${title}</div>
+      <div style="display:flex;gap:5px;">${rightBadges}</div>
     </div>
     <div style="font-size:11px;color:var(--mut);margin-top:3px;">${w.date} · ~${w.minutes} min total</div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 renderWalkHist();
 
@@ -902,7 +925,8 @@ function renderHist(){
         const vol=e.sets.reduce((a,s)=>a+s.weight*s.reps,0);
         return `<div class="hcard"><div class="hcrow"><div class="hctitle">${e.machine}</div><div style="display:flex;gap:5px;align-items:center;"><span class="badge">${e.sets.length} SETS</span><button class="delbtn" onclick="delG(${e.id})">🗑</button></div></div><div class="chips">${e.sets.map(s=>`<div class="chip"><span class="chipw">${s.weight}lb</span><span class="chipx">×</span>${s.reps}r</div>`).join('')}</div><div style="font-size:10px;color:var(--mut);margin-top:7px;">Volume: ${vol.toLocaleString()} lbs</div></div>`;
       }else if(e.type==='walk'){
-        return `<div class="hcard"><div class="hcrow"><div class="hctitle">Interval Walk</div><div style="display:flex;gap:5px;"><span class="badge bg">${e.intervals} INTERVALS</span>${e.cardio?'<span class="badge" style="background:#0a1a0f;color:#5a9a6a;border-color:#1a4a2a;">+CARDIO</span>':''}</div></div><div style="font-size:11px;color:var(--mut);margin-top:3px;">~${e.minutes} min total</div></div>`;
+        const{title,rightBadges}=walkEntryHTML(e);
+        return `<div class="hcard"><div class="hcrow"><div class="hctitle">${title}</div><div style="display:flex;gap:5px;">${rightBadges}</div></div><div style="font-size:11px;color:var(--mut);margin-top:3px;">~${e.minutes} min total</div></div>`;
       }else if(e.type==='body'){
         return `<div class="hcard"><div class="hcrow"><div class="hctitle">Check-In</div><button class="delbtn" onclick="delBody(${e.id})">🗑</button></div><div class="chips"><div class="chip"><span class="chipw">${e.weightLb}</span> lb</div><div class="chip"><span class="chipw">${e.bodyFatPct}%</span> bf</div>${e.waistIn?`<div class="chip"><span class="chipw">${e.waistIn}</span> in waist</div>`:''}</div></div>`;
       }else{
