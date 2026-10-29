@@ -196,7 +196,7 @@ function pickWorkout(){
   return 'A';
 }
 function firstOpenIndex(){
-  const exs=WORKOUTS[wk].exs;
+  const exs=W().exs;
   const i=exs.findIndex(e=>loggedToday(e).length<e.sets);
   return i<0?exs.length:i;
 }
@@ -207,16 +207,42 @@ function weekCount(){
 async function keepAwake(){try{if('wakeLock' in navigator)await navigator.wakeLock.request('screen');}catch{}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&view==='exercise')keepAwake();});
 
+// ── extra machines added on the fly for today's workout ──
+const MACHINES=['Leg Press','Leg Extension','Seated Leg Curl','Calf Extension','Chest Press','Pec Fly / Rear Delt','Shoulder Press','Seated Row','Lat Pulldown','Back Extension','Biceps Curl','Dependent Curl','Triceps Extension','Triceps Press','Abdominal Crunch','Hammer Strength Incline Press','Hammer Strength Chest Press','Hammer Strength Front Pulldown','Hammer Strength MTS Row'];
+function extrasToday(){const all=LS.get('il4v2_extras')||{};return all[new Date().toDateString()]||[];}
+function W(){const b=WORKOUTS[wk];return {...b,exs:[...b.exs,...extrasToday()]};}
+function addMachine(name){
+  name=(name||'').trim();if(!name)return;
+  if(W().exs.some(e=>e.n.toLowerCase()===name.toLowerCase())){toast('Already in today\'s workout');return;}
+  const all=LS.get('il4v2_extras')||{},k=new Date().toDateString();
+  // keep only today's entries so this does not grow forever
+  const next={};next[k]=[...(all[k]||[]),{n:name,sets:3,lo:10,hi:12,alias:[],how:'Add-on machine. Pick a weight you can lift 10–12 times with good form.',custom:true}];
+  LS.set('il4v2_extras',next);
+  exIdx=W().exs.length-1;view='exercise';enterEx();toast('Added '+name);
+}
+function addHTML(){
+  const have=new Set(W().exs.map(e=>e.n));
+  const seen=new Set(gymLog.map(g=>g.machine));
+  const names=[...new Set([...MACHINES,...seen])].filter(n=>!have.has(n)).sort((a,b)=>a.localeCompare(b));
+  return `<h2>Add a machine</h2>
+  <div class="card"><span class="lbl" style="margin-top:0">TYPE ANY MACHINE OR EXERCISE</span>
+    <input class="field" id="addname" placeholder="For example: Hip Abductor" onkeydown="if(event.key==='Enter')addMachine(this.value)">
+    <button class="btn" style="margin-top:.7rem" onclick="addMachine($('addname').value)">ADD IT</button></div>
+  <h2 style="font-size:1.05rem">Or pick one</h2>`+
+  names.map(n=>`<button class="card" style="width:100%;text-align:left;color:inherit;font-size:1.1rem;font-weight:800;min-height:64px" onclick="addMachine(${JSON.stringify(n).replace(/"/g,'&quot;')})">${esc(n)}</button>`).join('')+
+  `<button class="btn ghost" onclick="view='home';renderWorkout()">← Back</button>`;
+}
 function renderWorkout(){
   if(!wk)wk=pickWorkout();
   const el=$('pane-workout');
   if(view==='home')return el.innerHTML=homeHTML();
   if(view==='all')return el.innerHTML=allHTML();
+  if(view==='add')return el.innerHTML=addHTML();
   if(view==='done')return el.innerHTML=doneHTML();
   el.innerHTML=exerciseHTML();
 }
 function homeHTML(){
-  const w=WORKOUTS[wk],open=firstOpenIndex(),started=gymLog.some(g=>isToday(g.ts)&&w.exs.some(e=>namesOf(e).includes(g.machine)));
+  const w=W(),open=firstOpenIndex(),started=gymLog.some(g=>isToday(g.ts)&&w.exs.some(e=>namesOf(e).includes(g.machine)));
   const total=w.exs.reduce((a,e)=>a+e.sets,0),done=w.exs.reduce((a,e)=>a+Math.min(loggedToday(e).length,e.sets),0);
   return `
   <div class="row" style="margin:.4rem 0 .8rem">
@@ -232,28 +258,29 @@ function homeHTML(){
     <div class="small muted" style="margin-bottom:.8rem">🔥 ${w.warm}</div>
     <button class="btn" onclick="startWk()">${open>=w.exs.length?'REVIEW WORKOUT':started?'CONTINUE':'START WORKOUT'}</button>
     <button class="btn ghost sm" style="margin-top:.6rem" onclick="view='all';renderWorkout()">See all ${w.exs.length} machines</button>
+    <button class="btn ghost sm" style="margin-top:.6rem" onclick="view='add';renderWorkout()">+ Add a machine</button>
   </div>
   <div class="card muted small">Not a gym day? Do the <b>Stretch</b> routine or a <b>Walk</b> instead. Two or three workouts a week is plenty. Come back whenever you are ready and it will pick the next one.</div>`;
 }
 function pickWk(x){wk=x;renderWorkout();}
-function startWk(){exIdx=Math.min(firstOpenIndex(),WORKOUTS[wk].exs.length-1);view=firstOpenIndex()>=WORKOUTS[wk].exs.length?'done':'exercise';enterEx();}
+function startWk(){exIdx=Math.min(firstOpenIndex(),W().exs.length-1);view=firstOpenIndex()>=W().exs.length?'done':'exercise';enterEx();}
 function enterEx(){
   clearInterval(restInt);restLeft=0;extra=false;
-  const ex=WORKOUTS[wk].exs[exIdx];
+  const ex=W().exs[exIdx];
   if(ex){const sg=suggestion(ex),td=loggedToday(ex),lt=td[td.length-1];inp={w:lt?lt.weight:sg.w,r:lt?lt.reps:sg.r};}
   keepAwake();renderWorkout();window.scrollTo(0,0);
 }
 function allHTML(){
-  const w=WORKOUTS[wk];
+  const w=W();
   return `<h2>${w.name}</h2>`+w.exs.map((e,i)=>{
     const n=Math.min(loggedToday(e).length,e.sets),ok=n>=e.sets;
     return `<button class="card" style="width:100%;text-align:left;color:inherit;display:flex;justify-content:space-between;align-items:center;gap:.5rem" onclick="exIdx=${i};view='exercise';enterEx()">
       <span><b style="font-size:1.1rem">${ok?'✓ ':''}${esc(e.n)}</b><br><span class="muted small">${e.sets} × ${e.lo}${e.lo===e.hi?'':'–'+e.hi}</span></span>
       <span class="chip ${ok?'done':''}">${n} of ${e.sets}</span></button>`;}).join('')+
-    `<button class="btn ghost" onclick="view='home';renderWorkout()">← Back</button>`;
+    `<button class="btn ghost" style="margin-bottom:.6rem" onclick="view='add';renderWorkout()">+ Add a machine</button><button class="btn ghost" onclick="view='home';renderWorkout()">← Back</button>`;
 }
 function exerciseHTML(){
-  const w=WORKOUTS[wk],ex=w.exs[exIdx],td=loggedToday(ex),sg=suggestion(ex),n=td.length,complete=n>=ex.sets&&!extra;
+  const w=W(),ex=w.exs[exIdx],td=loggedToday(ex),sg=suggestion(ex),n=td.length,complete=n>=ex.sets&&!extra;
   const range=ex.lo===ex.hi?ex.hi:`${ex.lo}–${ex.hi}`;
   const lastTxt=sg.last?sg.last.sets.map(s=>`${s.weight}×${s.reps}`).join(', '):null;
   return `
@@ -292,7 +319,7 @@ function setForm(ex,n){
 function bump(k,d){inp[k]=Math.max(0,Math.round(((inp[k]||0)+d)*10)/10);const i=$(k==='w'?'iw':'ir');if(i)i.value=inp[k]||'';chk();}
 function chk(){const b=$('logbtn');if(b)b.disabled=!(inp.w>0&&inp.r>0);}
 function logSet(){
-  const ex=WORKOUTS[wk].exs[exIdx];if(!(inp.w>0&&inp.r>0))return;
+  const ex=W().exs[exIdx];if(!(inp.w>0&&inp.r>0))return;
   let e=gymLog.find(g=>g.machine===ex.n&&isToday(g.ts));
   if(e)e.sets.push({weight:inp.w,reps:inp.r});
   else gymLog.unshift({id:Date.now(),ts:Date.now(),date:fmtDate(new Date()),machine:ex.n,sets:[{weight:inp.w,reps:inp.r}]});
@@ -303,7 +330,7 @@ function logSet(){
   renderWorkout();
 }
 function undoSet(){
-  const ex=WORKOUTS[wk].exs[exIdx],e=gymLog.find(g=>g.machine===ex.n&&isToday(g.ts));
+  const ex=W().exs[exIdx],e=gymLog.find(g=>g.machine===ex.n&&isToday(g.ts));
   if(!e)return;e.sets.pop();if(!e.sets.length)gymLog=gymLog.filter(g=>g!==e);
   LS.set('il4_gym',gymLog);clearInterval(restInt);restLeft=0;
   const td=loggedToday(ex),lt=td[td.length-1],sg=suggestion(ex);inp={w:lt?lt.weight:sg.w,r:lt?lt.reps:sg.r};
@@ -316,16 +343,17 @@ function startRest(){
 }
 function skipRest(){clearInterval(restInt);restLeft=0;renderWorkout();}
 function nextEx(){
-  const w=WORKOUTS[wk];
+  const w=W();
   if(exIdx+1<w.exs.length){exIdx++;enterEx();}
   else{clearInterval(restInt);restLeft=0;view='done';renderWorkout();window.scrollTo(0,0);}
 }
 function doneHTML(){
-  const w=WORKOUTS[wk];
+  const w=W();
   let sets=0,vol=0;w.exs.forEach(e=>loggedToday(e).forEach(s=>{sets++;vol+=s.weight*s.reps;}));
   return `
   <div class="card" style="text-align:center;background:var(--ok-bg)"><div class="big">💪 ${w.name} done</div><div style="margin-top:.4rem"><b>${sets}</b> sets · <b>${vol.toLocaleString()}</b> lb lifted</div></div>
   <button class="btn" onclick="showPane('walk')">🚶 Log post-lift cardio (10–15 min)</button>
+  <button class="btn ghost" style="margin-top:.6rem" onclick="view='add';renderWorkout()">+ Add another machine</button>
   <button class="btn ghost" style="margin-top:.6rem" onclick="showPane('stretch')">🧘 Stretch now</button>
   <button class="btn ghost sm" style="margin-top:.6rem" onclick="view='home';wk=null;renderWorkout()">Back to start</button>`;
 }
