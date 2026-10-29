@@ -179,6 +179,10 @@ function suggestion(ex){
   if(!last)return {w:0,r:ex.lo,hit:false,last:null};
   const hit=last.sets.every(s=>s.reps>=ex.hi);
   const lw=last.sets[last.sets.length-1].weight;
+  if(layoffDays()>=LAYOFF){ // been away: start about 10% lighter, rounded to 5 lb
+    const ez=Math.max(5,Math.round(lw*0.9/5)*5);
+    return {w:ez,r:ex.lo,hit:false,ease:ez<lw,last};
+  }
   return {w:hit?lw+5:lw,r:hit?ex.lo:Math.max(ex.lo,Math.min(ex.hi,last.sets[last.sets.length-1].reps)),hit,last};
 }
 function classify(day){ // which workout does a day's history look like?
@@ -188,13 +192,26 @@ function classify(day){ // which workout does a day's history look like?
   WORKOUTS.B.exs.forEach(e=>namesOf(e).some(n=>names.has(n))&&b++);
   return a===b?null:(a>b?'A':'B');
 }
+function lastWorkoutInfo(){ // most recent earlier day that clearly looks like workout A or B
+  const seen=new Set();
+  for(const g of gymLog){
+    if(isToday(g.ts))continue;
+    const day=new Date(g.ts).toDateString();if(seen.has(day))continue;seen.add(day);
+    const c=classify(day);
+    if(c){const d0=new Date(g.ts);d0.setHours(0,0,0,0);const t0=new Date();t0.setHours(0,0,0,0);
+      return {w:c,days:Math.round((t0-d0)/86400000)};}
+  }
+  return null;
+}
 function pickWorkout(){
   const todays=classify(new Date().toDateString());
   if(todays&&gymLog.some(g=>isToday(g.ts)))return todays;
-  const lastDay=gymLog.find(g=>!isToday(g.ts));
-  if(lastDay){const c=classify(new Date(lastDay.ts).toDateString());if(c)return c==='A'?'B':'A';}
-  return 'A';
+  const last=lastWorkoutInfo();
+  return last?(last.w==='A'?'B':'A'):'A';
 }
+function agoTxt(n){return n<=0?'today':n===1?'yesterday':n+' days ago';}
+function layoffDays(){const l=lastWorkoutInfo();return l?l.days:0;}
+const LAYOFF=10; // days away before we suggest easing back in
 function firstOpenIndex(){
   const exs=W().exs;
   const i=exs.findIndex(e=>loggedToday(e).length<e.sets);
@@ -243,6 +260,7 @@ function renderWorkout(){
 }
 function homeHTML(){
   const w=W(),open=firstOpenIndex(),started=gymLog.some(g=>isToday(g.ts)&&w.exs.some(e=>namesOf(e).includes(g.machine)));
+  const li=lastWorkoutInfo(),away=layoffDays();
   const total=w.exs.reduce((a,e)=>a+e.sets,0),done=w.exs.reduce((a,e)=>a+Math.min(loggedToday(e).length,e.sets),0);
   return `
   <div class="row" style="margin:.4rem 0 .8rem">
@@ -252,7 +270,9 @@ function homeHTML(){
   <div class="card">
     <div class="muted small" style="font-weight:800">${started?'IN PROGRESS':'UP NEXT'}</div>
     <div class="big">${w.name}</div>
-    <div class="muted" style="margin:.2rem 0 .6rem">${w.exs.length} machines · about 40 minutes</div>
+    <div class="muted" style="margin:.2rem 0 .3rem">${w.exs.length} machines · about 40 minutes</div>
+    <div class="small" style="margin-bottom:.6rem;font-weight:700">${li&&!started?`Last workout: ${li.w}, ${agoTxt(li.days)}. So today is ${w.name.replace('Workout ','')}.`:!li&&!started?'Your first workout. Start light and learn the machines.':''}</div>
+    ${away>=LAYOFF&&!started?`<div class="hint" style="margin-bottom:.6rem">Welcome back! It has been ${away} days. Weights start about 10% lighter today to ease back in.</div>`:''}
     ${started?`<div class="pbar"><i style="width:${Math.round(done/total*100)}%"></i></div><div class="small muted" style="margin-bottom:.6rem">${done} of ${total} sets done</div>`:''}
     <div class="seg" style="margin-bottom:.8rem"><button class="${wk==='A'?'on':''}" onclick="pickWk('A')">Workout A</button><button class="${wk==='B'?'on':''}" onclick="pickWk('B')">Workout B</button></div>
     <div class="small muted" style="margin-bottom:.8rem">🔥 ${w.warm}</div>
@@ -290,6 +310,7 @@ function exerciseHTML(){
     <div class="big">${esc(ex.n)}</div>
     <div style="margin:.3rem 0"><span class="badge">${ex.sets} sets × ${range} reps</span></div>
     ${lastTxt?`<div class="muted" style="margin-top:.4rem">Last time: <b>${lastTxt}</b></div>`:'<div class="muted" style="margin-top:.4rem">First time on this machine. Start light.</div>'}
+    ${sg.ease?`<div class="hint">↘ It has been a while. Start lighter today: ${sg.w} lb. Build back up over the next sessions.</div>`:''}
     ${sg.hit?`<div class="hint">⬆ You hit ${ex.hi} reps on every set last time. Try ${sg.w} lb today.</div>`:''}
     <details><summary>How to do it</summary><p>${esc(ex.how)}</p></details>
   </div>
