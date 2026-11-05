@@ -154,6 +154,8 @@ const WORKOUTS={
     {n:'Seated Leg Curl',sets:2,lo:12,hi:15,alias:['Lying / Seated Leg Curl'],how:'Curl the pad down and back, hold 1 second, and lower slowly. Do not let the weights drop.'},
     {n:'Triceps Extension',sets:2,lo:12,hi:15,alias:['Triceps Pushdown','Triceps Press'],how:'Elbows pinned to your sides. Push down until your arms are straight, then let it back up slowly.'},
     {n:'Abdominal Crunch',sets:2,lo:12,hi:15,alias:[],how:'Hold the handles and curl your body forward, breathing out. Use your stomach, not your arms.'},
+    {n:'Hip Abductor',sets:2,lo:12,hi:15,alias:['Hip Abduction'],how:'Back flat against the pad, feet on the rests. Push your knees out smoothly, pause 1 second, and let them back in over 2 to 3 seconds. Keep your torso upright and start light.'},
+    {n:'Hip Adductor',sets:2,lo:12,hi:15,alias:['Hip Adduction'],how:'Start with the pads only slightly apart. Squeeze your knees together, pause 1 second, and let them open slowly. Do not let the weights slam. Go lighter than you think you need.'},
   ]},
   B:{name:'Workout B',warm:'5 minutes of easy walking or bike first.',exs:[
     {n:'Leg Extension',sets:3,lo:12,hi:15,alias:['Leg Extension (lighter)'],how:'Back against the pad. Straighten your legs, squeeze 1 second at the top, and lower slowly.'},
@@ -162,6 +164,8 @@ const WORKOUTS={
     {n:'Calf Extension',sets:2,lo:15,hi:20,alias:['Calf Raise (machine)'],how:'Go all the way down for a stretch, then rise all the way up on your toes and pause at the top.'},
     {n:'Biceps Curl',sets:2,lo:12,hi:15,alias:['Biceps Curl (machine/cable)','Dependent Curl'],how:'Full range of motion. Keep tension on the muscle and do not let the weights rest between reps.'},
     {n:'Back Extension',sets:2,lo:12,hi:15,alias:[],how:'Lean back slowly with control and stop when your body is in a straight line. Do not arch past that.'},
+    {n:'Hip Abductor',sets:2,lo:12,hi:15,alias:['Hip Abduction'],how:'Back flat against the pad, feet on the rests. Push your knees out smoothly, pause 1 second, and let them back in over 2 to 3 seconds. Keep your torso upright and start light.'},
+    {n:'Hip Adductor',sets:2,lo:12,hi:15,alias:['Hip Adduction'],how:'Start with the pads only slightly apart. Squeeze your knees together, pause 1 second, and let them open slowly. Do not let the weights slam. Go lighter than you think you need.'},
   ]},
 };
 const REST_SECS=90;
@@ -225,7 +229,7 @@ async function keepAwake(){try{if('wakeLock' in navigator)await navigator.wakeLo
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&view==='exercise')keepAwake();});
 
 // ── extra machines added on the fly for today's workout ──
-const MACHINES=['Leg Press','Leg Extension','Seated Leg Curl','Calf Extension','Chest Press','Pec Fly / Rear Delt','Shoulder Press','Seated Row','Lat Pulldown','Back Extension','Biceps Curl','Dependent Curl','Triceps Extension','Triceps Press','Abdominal Crunch','Hammer Strength Incline Press','Hammer Strength Chest Press','Hammer Strength Front Pulldown','Hammer Strength MTS Row'];
+const MACHINES=['Hip Abductor','Hip Adductor','Leg Press','Leg Extension','Seated Leg Curl','Calf Extension','Chest Press','Pec Fly / Rear Delt','Shoulder Press','Seated Row','Lat Pulldown','Back Extension','Biceps Curl','Dependent Curl','Triceps Extension','Triceps Press','Abdominal Crunch','Hammer Strength Incline Press','Hammer Strength Chest Press','Hammer Strength Front Pulldown','Hammer Strength MTS Row'];
 function extrasToday(){const all=LS.get('il4v2_extras')||{};return all[new Date().toDateString()]||[];}
 function W(){const b=WORKOUTS[wk];return {...b,exs:[...b.exs,...extrasToday()]};}
 function addMachine(name){
@@ -382,17 +386,21 @@ function doneHTML(){
 // ───────── stretch (same 10 stretches as before; full or quick) ─────────
 const STRS=[
   {n:'Ankle Circles',s:60,a:'Joint warm-up',h:'30 sec each foot',d:'Sit in a chair. Lift one foot and draw slow circles with your toes, 10 each way. Switch feet. Ankle mobility is a big factor in balance and fall risk after 60.'},
+  {n:'Wall Ankle Stretch',s:90,a:'Joint warm-up',h:'10 reps each foot, 2 sec hold',d:'Stand facing a wall with your toes about 4 inches away. Keeping your heel flat, bend your knee forward toward the wall, hold 2 seconds, and return. Ankle mobility is the most common thing holding people back from getting up off the floor.'},
   {n:'Cat-Cow',s:60,a:'Joint warm-up',h:'10 slow reps',d:'On hands and knees (or seated, hands on knees). Arch your back up toward the ceiling, then let it sag down. Move with your breath.'},
   {n:'Knee-to-Chest',s:90,a:'Hips & lower back',h:'30 sec each side',d:'Lie on your back. Pull one knee gently to your chest and hold, then switch. Releases lower back tightness from sleeping and sitting.'},
   {n:'Figure-4 Hip Stretch',s:120,a:'Hips & lower back',h:'60 sec each side',d:'Lie on your back. Cross your right ankle over your left knee. Pull your left thigh toward you until you feel a deep stretch in your right hip. Hold, then switch. Hip flexibility is tied to balance.'},
+  {n:'90/90 Hip Switches',s:90,a:'Hips & lower back',h:'8 each side',d:'Sit on the floor with both knees bent 90° and dropped to the same side. Rotate your knees slowly over to the other side. Use a hand on the floor behind you for support. Move gently and stop at mild tension.'},
+  {n:'Butterfly Stretch',s:60,a:'Hips & lower back',h:'45 sec',d:'Sit tall with the soles of your feet together and knees dropped out to the sides. Hold your feet and let your knees sink. Do not push on your knees. Helps the inner thighs for sitting cross-legged.'},
   {n:'Hip Flexor Stretch',s:90,a:'Hips & lower back',h:'45 sec each side',d:'Kneel on one knee next to a chair for balance. Tuck your pelvis slightly and shift forward until you feel a stretch in the front of the kneeling hip. Switch sides.'},
   {n:'Doorway Chest Opener',s:45,a:'Spine & posture',h:'45 sec',d:'Stand in a doorway with both forearms on the frame at 90°. Lean forward gently until you feel a stretch across your chest and shoulders.'},
   {n:'Seated Thoracic Rotation',s:60,a:'Spine & posture',h:'30 sec each side',d:'Sit upright, arms crossed over your chest. Rotate your upper body slowly to the right, hold 2 seconds, return, then go left.'},
   {n:'Seated Forward Fold',s:60,a:'Hamstrings & calves',h:'60 sec',d:'Sit on the floor with legs straight out. Reach toward your feet as far as is comfortable, even your shins is fine. Never force or bounce.'},
   {n:'Standing Calf Stretch',s:60,a:'Hamstrings & calves',h:'30 sec each side',d:'Face a wall, hands on it. Step one foot back, heel flat on the floor, and lean forward. Switch sides.'},
+  {n:'Supported Deep Squat Hold',s:60,a:'Hamstrings & calves',h:'30 to 60 sec',d:'Hold a doorframe or sturdy post with both hands and sit down into the bottom of a squat, heels flat if you can. Stay tall and breathe. Build up to 2 to 3 minutes total through the day. This is the position you need for getting up off the floor.'},
   {n:"Child's Pose",s:60,a:'Cool-down',h:'60 sec',d:'Kneel, sit back toward your heels, reach your arms forward, and let your back relax. Hold and breathe.'},
 ];
-const QUICK=[2,3,4,5,9]; // Knee-to-Chest, Figure-4, Hip Flexor, Chest Opener, Child's Pose (~7 min)
+const QUICK=[1,3,4,7,8,13]; // Wall Ankle, Knee-to-Chest, Figure-4, Hip Flexor, Chest Opener, Child's Pose (~8 min)
 let sr=null,srInt=null;
 const mins=l=>Math.round(l.reduce((a,i)=>a+STRS[i].s,0)/60);
 function renderStretch(){
